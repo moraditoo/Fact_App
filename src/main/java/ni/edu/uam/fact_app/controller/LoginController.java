@@ -26,11 +26,12 @@ public class LoginController {
         Cargo cajero = new Cargo(2, "Cajero", "Ventas");
         Cargo bodeguero = new Cargo(3, "Bodeguero", "Inventario");
 
-        Empleado emp1 = new Empleado(1, "Carlos", "Perez", admin, LocalDate.now(), true);
-        Empleado emp2 = new Empleado(2, "Maria", "Lopez", cajero, LocalDate.now(), true);
-        Empleado emp3 = new Empleado(3, "Juan", "Gomez", bodeguero, LocalDate.now(), true);
+        // Sin el booleano 'true' al final:
+        Empleado emp1 = new Empleado(1, "Carlos", "Perez", admin, LocalDate.now());
+        Empleado emp2 = new Empleado(2, "Maria", "Lopez", cajero, LocalDate.now());
+        Empleado emp3 = new Empleado(3, "Juan", "Gomez", bodeguero, LocalDate.now());
 
-        // Cuentas de prueba preconfiguradas
+        // Cuentas de acceso demo
         usuarios.add(new Usuario("admin", "admin123", emp1));
         usuarios.add(new Usuario("cajero", "cajero123", emp2));
         usuarios.add(new Usuario("bodega", "bodega123", emp3));

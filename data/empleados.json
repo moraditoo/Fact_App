@@ -1,0 +1,21 @@
+[ {
+  "id" : 1,
+  "nombres" : "Carlos",
+  "apellidos" : "Perez",
+  "cargo" : {
+    "id" : 1,
+    "nombre" : "Administrador",
+    "descripcion" : "Acceso total al sistema"
+  },
+  "fechaContratacion" : [ 2025, 1, 15 ]
+}, {
+  "id" : 2,
+  "nombres" : "Maria",
+  "apellidos" : "Lopez",
+  "cargo" : {
+    "id" : 2,
+    "nombre" : "Cajero",
+    "descripcion" : "Facturación y cobro"
+  },
+  "fechaContratacion" : [ 2025, 3, 1 ]
+} ]

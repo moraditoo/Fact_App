@@ -49,7 +49,6 @@ public class VentaController {
 
         recargarComboProductos();
 
-        // Listener al seleccionar un producto para mostrar stock e imagen
         cmbProducto.getSelectionModel().selectedItemProperty().addListener((obs, oldV, prod) -> {
             if (prod != null) {
                 lblStockDisponible.setText("Disponibles: " + prod.getExistencia() + " unids.");
@@ -64,7 +63,9 @@ public class VentaController {
                 }
             } else {
                 lblStockDisponible.setText("Disponibles: -");
-                imgMiniatura.setImage(null);
+                if (imgMiniatura != null) {
+                    imgMiniatura.setImage(null);
+                }
             }
         });
 
@@ -80,8 +81,9 @@ public class VentaController {
 
     private void recargarComboProductos() {
         ObservableList<Producto> disponibles = FXCollections.observableArrayList();
-        for (Producto p : ProductoContoller.getProductos()) {
-            if (p.isActivo() && p.getExistencia() > 0) {
+        // Lee directamente desde DataManager y valida existencia sin el campo activo
+        for (Producto p : DataManager.getProductos()) {
+            if (p.getExistencia() > 0) {
                 disponibles.add(p);
             }
         }
@@ -108,7 +110,6 @@ public class VentaController {
             return;
         }
 
-        // Calcular cantidad que ya está metida en el carrito para este producto
         int yaEnCarrito = 0;
         for (DetalleVenta d : carrito) {
             if (d.getProducto().getCodigo().equals(prod.getCodigo())) {
@@ -122,7 +123,6 @@ public class VentaController {
             return;
         }
 
-        // Si ya existe en el carrito se acumula, si no, se agrega nueva línea
         boolean existe = false;
         for (DetalleVenta d : carrito) {
             if (d.getProducto().getCodigo().equals(prod.getCodigo())) {
@@ -179,7 +179,8 @@ public class VentaController {
             p.setExistencia(p.getExistencia() - d.getCantidad());
         }
 
-        DataManager.guardarProductos(); // Guarda el inventario rebajado en disco
+        // Guarda el stock actualizado permanentemente en disco
+        DataManager.guardarProductos();
 
         mensaje(Alert.AlertType.INFORMATION, "¡Factura " + lblNumeroFactura.getText() + " procesada con éxito!\nInventario actualizado.");
         correlativoFactura++;

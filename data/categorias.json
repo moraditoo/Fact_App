@@ -1,0 +1,10 @@
+[ {
+  "id" : 1,
+  "nombre" : "Alimentos"
+}, {
+  "id" : 2,
+  "nombre" : "Bebidas"
+}, {
+  "id" : 3,
+  "nombre" : "Limpieza"
+} ]

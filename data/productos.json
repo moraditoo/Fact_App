@@ -1,0 +1,45 @@
+[ {
+  "id" : 1,
+  "codigo" : "ALM-001",
+  "nombre" : "Arroz Faisán 1lb",
+  "categoria" : {
+    "id" : 1,
+    "nombre" : "Alimentos"
+  },
+  "precioVenta" : 24.50,
+  "existencia" : 150,
+  "rutaImagen" : null
+}, {
+  "id" : 2,
+  "codigo" : "ALM-002",
+  "nombre" : "Frijoles Rojos 1lb",
+  "categoria" : {
+    "id" : 1,
+    "nombre" : "Alimentos"
+  },
+  "precioVenta" : 32.00,
+  "existencia" : 119,
+  "rutaImagen" : null
+}, {
+  "id" : 3,
+  "codigo" : "BEB-001",
+  "nombre" : "Coca Cola 2L",
+  "categoria" : {
+    "id" : 2,
+    "nombre" : "Bebidas"
+  },
+  "precioVenta" : 48.00,
+  "existencia" : 90,
+  "rutaImagen" : null
+}, {
+  "id" : 4,
+  "codigo" : "LMP-001",
+  "nombre" : "Detergente Roma 1kg",
+  "categoria" : {
+    "id" : 3,
+    "nombre" : "Limpieza"
+  },
+  "precioVenta" : 55.00,
+  "existencia" : 65,
+  "rutaImagen" : null
+} ]

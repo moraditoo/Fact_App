@@ -1,0 +1,13 @@
+[ {
+  "id" : 1,
+  "nombre" : "Administrador",
+  "descripcion" : "Acceso total al sistema"
+}, {
+  "id" : 2,
+  "nombre" : "Cajero",
+  "descripcion" : "Facturación y cobro"
+}, {
+  "id" : 3,
+  "nombre" : "Bodeguero",
+  "descripcion" : "Gestión de existencias"
+} ]
