@@ -1,60 +1,46 @@
 package ni.edu.uam.fact_app.controller;
 
-import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import ni.edu.uam.fact_app.model.Categoria;
+import ni.edu.uam.fact_app.util.DataManager;
 
 public class CategoriaController {
 
     @FXML private TextField txtNombre;
-    @FXML private CheckBox chkActiva;
     @FXML private TextField txtBuscar;
 
     @FXML private TableView<Categoria> tblCategorias;
     @FXML private TableColumn<Categoria, Integer> colId;
     @FXML private TableColumn<Categoria, String> colNombre;
-    @FXML private TableColumn<Categoria, String> colActiva;
 
-    // Lista estática para que los cambios se mantengan al cerrar y reabrir la ventana
-    private static final ObservableList<Categoria> categorias = FXCollections.observableArrayList();
-    private static int correlativoId = 1;
-    private static boolean inicializado = false;
-
-    public static ObservableList<Categoria> getCategorias() {
-        if (!inicializado) {
-            categorias.add(new Categoria(correlativoId++, "Alimentos", true));
-            categorias.add(new Categoria(correlativoId++, "Bebidas", true));
-            categorias.add(new Categoria(correlativoId++, "Limpieza", true));
-            inicializado = true;
-        }
-        return categorias;
-    }
+    private ObservableList<Categoria> categorias;
 
     @FXML
     private void initialize() {
+        categorias = DataManager.getCategorias();
+
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
 
-        // Muestra visualmente "Activo" o "Inactivo" en la columna
-        colActiva.setCellValueFactory(cellData ->
-                new SimpleStringProperty(cellData.getValue().isActiva() ? "Activo" : "Inactivo")
-        );
+        FilteredList<Categoria> filtro = new FilteredList<>(categorias, c -> true);
+        if (txtBuscar != null) {
+            txtBuscar.textProperty().addListener((obs, oldV, texto) -> {
+                filtro.setPredicate(c -> {
+                    if (texto == null || texto.isBlank()) return true;
+                    return c.getNombre().toLowerCase().contains(texto.toLowerCase());
+                });
+            });
+        }
+        tblCategorias.setItems(filtro);
 
-        // Asegurar que contenga datos de prueba iniciales
-        getCategorias();
-        tblCategorias.setItems(categorias);
-        chkActiva.setSelected(true);
-
-        // Al seleccionar de la tabla, carga los datos en el formulario
-        tblCategorias.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, seleccionado) -> {
-            if (seleccionado != null) {
-                txtNombre.setText(seleccionado.getNombre());
-                chkActiva.setSelected(seleccionado.isActiva());
+        tblCategorias.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, sel) -> {
+            if (sel != null) {
+                txtNombre.setText(sel.getNombre());
             }
         });
     }
@@ -66,15 +52,16 @@ public class CategoriaController {
             return;
         }
 
-        Categoria seleccionada = tblCategorias.getSelectionModel().getSelectedItem();
-        if (seleccionada != null) {
-            seleccionada.setNombre(txtNombre.getText().trim());
-            seleccionada.setActiva(chkActiva.isSelected());
+        Categoria sel = tblCategorias.getSelectionModel().getSelectedItem();
+        if (sel != null) {
+            sel.setNombre(txtNombre.getText().trim());
             tblCategorias.refresh();
+            DataManager.guardarCategorias();
             mensaje(Alert.AlertType.INFORMATION, "Categoría modificada correctamente.");
         } else {
-            Categoria nueva = new Categoria(correlativoId++, txtNombre.getText().trim(), chkActiva.isSelected());
-            categorias.add(nueva);
+            int nuevoId = categorias.size() + 1;
+            categorias.add(new Categoria(nuevoId, txtNombre.getText().trim()));
+            DataManager.guardarCategorias();
             mensaje(Alert.AlertType.INFORMATION, "Categoría agregada correctamente.");
         }
 
@@ -82,23 +69,25 @@ public class CategoriaController {
     }
 
     @FXML
-    private void desactivar() {
-        Categoria seleccionada = tblCategorias.getSelectionModel().getSelectedItem();
-        if (seleccionada == null) {
+    private void eliminar() {
+        Categoria sel = tblCategorias.getSelectionModel().getSelectedItem();
+        if (sel == null) {
             mensaje(Alert.AlertType.WARNING, "Seleccione una categoría de la tabla.");
             return;
         }
 
-        seleccionada.setActiva(false);
-        chkActiva.setSelected(false);
-        tblCategorias.refresh();
-        mensaje(Alert.AlertType.INFORMATION, "Categoría desactivada.");
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "¿Desea eliminar la categoría seleccionada?", ButtonType.OK, ButtonType.CANCEL);
+        if (confirm.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
+            categorias.remove(sel);
+            DataManager.guardarCategorias();
+            limpiar();
+            mensaje(Alert.AlertType.INFORMATION, "Categoría eliminada.");
+        }
     }
 
     @FXML
     private void limpiar() {
         txtNombre.clear();
-        chkActiva.setSelected(true);
         tblCategorias.getSelectionModel().clearSelection();
     }
 

@@ -6,13 +6,15 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import ni.edu.uam.fact_app.model.*;
+import ni.edu.uam.fact_app.util.DataManager;
 import ni.edu.uam.fact_app.util.SesionUsuario;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
 
 public class VentaController {
 
@@ -21,6 +23,7 @@ public class VentaController {
     @FXML private ComboBox<Producto> cmbProducto;
     @FXML private TextField txtCantidad;
     @FXML private Label lblStockDisponible;
+    @FXML private ImageView imgMiniatura;
 
     @FXML private TableView<DetalleVenta> tblDetalle;
     @FXML private TableColumn<DetalleVenta, String> colCodigo;
@@ -44,18 +47,24 @@ public class VentaController {
             lblVendedor.setText(actual.getEmpleado().getNombres() + " " + actual.getEmpleado().getApellidos());
         }
 
-        // Cargar productos activos con existencia disponible
-        ObservableList<Producto> disponibles = FXCollections.observableArrayList();
-        for (Producto p : ProductoContoller.getProductos()) {
-            if (p.isActivo() && p.getExistencia() > 0) disponibles.add(p);
-        }
-        cmbProducto.setItems(disponibles);
+        recargarComboProductos();
 
+        // Listener al seleccionar un producto para mostrar stock e imagen
         cmbProducto.getSelectionModel().selectedItemProperty().addListener((obs, oldV, prod) -> {
             if (prod != null) {
-                lblStockDisponible.setText("Stock: " + prod.getExistencia());
+                lblStockDisponible.setText("Disponibles: " + prod.getExistencia() + " unids.");
+                if (prod.getRutaImagen() != null && !prod.getRutaImagen().isBlank()) {
+                    try {
+                        imgMiniatura.setImage(new Image(prod.getRutaImagen(), true));
+                    } catch (Exception e) {
+                        imgMiniatura.setImage(null);
+                    }
+                } else {
+                    imgMiniatura.setImage(null);
+                }
             } else {
-                lblStockDisponible.setText("Stock: -");
+                lblStockDisponible.setText("Disponibles: -");
+                imgMiniatura.setImage(null);
             }
         });
 
@@ -69,11 +78,21 @@ public class VentaController {
         calcularTotales();
     }
 
+    private void recargarComboProductos() {
+        ObservableList<Producto> disponibles = FXCollections.observableArrayList();
+        for (Producto p : ProductoContoller.getProductos()) {
+            if (p.isActivo() && p.getExistencia() > 0) {
+                disponibles.add(p);
+            }
+        }
+        cmbProducto.setItems(disponibles);
+    }
+
     @FXML
     private void agregarAlCarrito() {
         Producto prod = cmbProducto.getValue();
         if (prod == null) {
-            mensaje(Alert.AlertType.WARNING, "Seleccione un producto.");
+            mensaje(Alert.AlertType.WARNING, "Seleccione un producto del catálogo.");
             return;
         }
 
@@ -81,20 +100,44 @@ public class VentaController {
         try {
             cantidad = Integer.parseInt(txtCantidad.getText().trim());
             if (cantidad <= 0) {
-                mensaje(Alert.AlertType.WARNING, "La cantidad debe ser mayor a 0.");
+                mensaje(Alert.AlertType.WARNING, "La cantidad a facturar debe ser mayor a 0.");
                 return;
             }
         } catch (NumberFormatException e) {
-            mensaje(Alert.AlertType.ERROR, "Cantidad no válida.");
+            mensaje(Alert.AlertType.ERROR, "La cantidad debe ser un número entero válido.");
             return;
         }
 
-        if (cantidad > prod.getExistencia()) {
-            mensaje(Alert.AlertType.ERROR, "Existencias insuficientes. Disponibles: " + prod.getExistencia());
+        // Calcular cantidad que ya está metida en el carrito para este producto
+        int yaEnCarrito = 0;
+        for (DetalleVenta d : carrito) {
+            if (d.getProducto().getCodigo().equals(prod.getCodigo())) {
+                yaEnCarrito += d.getCantidad();
+            }
+        }
+
+        if ((yaEnCarrito + cantidad) > prod.getExistencia()) {
+            mensaje(Alert.AlertType.ERROR, "Stock insuficiente. En stock: " + prod.getExistencia()
+                    + " (Ya tienes " + yaEnCarrito + " en la factura)");
             return;
         }
 
-        carrito.add(new DetalleVenta(prod, cantidad));
+        // Si ya existe en el carrito se acumula, si no, se agrega nueva línea
+        boolean existe = false;
+        for (DetalleVenta d : carrito) {
+            if (d.getProducto().getCodigo().equals(prod.getCodigo())) {
+                d.setCantidad(d.getCantidad() + cantidad);
+                d.setSubtotal(d.getPrecioUnitario().multiply(new BigDecimal(d.getCantidad())));
+                existe = true;
+                break;
+            }
+        }
+
+        if (!existe) {
+            carrito.add(new DetalleVenta(prod, cantidad));
+        }
+
+        tblDetalle.refresh();
         calcularTotales();
         txtCantidad.setText("1");
         cmbProducto.getSelectionModel().clearSelection();
@@ -107,7 +150,7 @@ public class VentaController {
             carrito.remove(sel);
             calcularTotales();
         } else {
-            mensaje(Alert.AlertType.WARNING, "Seleccione un artículo para remover.");
+            mensaje(Alert.AlertType.WARNING, "Seleccione una fila de la tabla para quitar.");
         }
     }
 
@@ -127,17 +170,18 @@ public class VentaController {
     @FXML
     private void finalizarVenta() {
         if (carrito.isEmpty()) {
-            mensaje(Alert.AlertType.WARNING, "El carrito de venta está vacío.");
+            mensaje(Alert.AlertType.WARNING, "No hay productos agregados a la factura.");
             return;
         }
 
-        // Descontar inventario de cada producto vendido
         for (DetalleVenta d : carrito) {
             Producto p = d.getProducto();
             p.setExistencia(p.getExistencia() - d.getCantidad());
         }
 
-        mensaje(Alert.AlertType.INFORMATION, "¡Venta FAC-" + correlativoFactura + " procesada con éxito!");
+        DataManager.guardarProductos(); // Guarda el inventario rebajado en disco
+
+        mensaje(Alert.AlertType.INFORMATION, "¡Factura " + lblNumeroFactura.getText() + " procesada con éxito!\nInventario actualizado.");
         correlativoFactura++;
         ((Stage) txtCantidad.getScene().getWindow()).close();
     }

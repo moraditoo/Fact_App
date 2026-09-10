@@ -1,6 +1,9 @@
 package ni.edu.uam.fact_app.model;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDate;
 
 @Data
@@ -12,5 +15,4 @@ public class Empleado {
     private String apellidos;
     private Cargo cargo;
     private LocalDate fechaContratacion;
-    private boolean activo;
 }
