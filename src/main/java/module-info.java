@@ -1,4 +1,4 @@
-module ni.edu.uam.facturacion {
+module ni.edu.uam.fact_app {
     requires javafx.controls;
     requires javafx.fxml;
     requires static lombok;
@@ -6,6 +6,6 @@ module ni.edu.uam.facturacion {
     opens ni.edu.uam.fact_app.controller to javafx.fxml;
     opens ni.edu.uam.fact_app.model to javafx.base;
 
+    exports ni.edu.uam.fact_app;
     exports ni.edu.uam.fact_app.application;
 }
-
