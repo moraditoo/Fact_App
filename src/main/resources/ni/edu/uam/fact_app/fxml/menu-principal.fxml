@@ -9,46 +9,56 @@
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="600.0" prefWidth="900.0" style="-fx-background-color: #F8FAFC;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ni.edu.uam.fact_app.controller.MenuPrincipalController">
+<BorderPane prefHeight="650.0" prefWidth="980.0" style="-fx-background-color: #F8FAFC;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ni.edu.uam.fact_app.controller.MenuPrincipalController">
     <top>
         <VBox spacing="0.0">
-            <!-- Barra Superior Menú -->
             <MenuBar style="-fx-background-color: #FFFFFF; -fx-border-color: #E2E8F0; -fx-border-width: 0 0 1 0;">
                 <menus>
                     <Menu text="Mantenimientos">
                         <items>
+                            <MenuItem fx:id="mnuVentas" onAction="#abrirVentas" text="Punto de Venta" />
                             <MenuItem fx:id="mnuProductos" onAction="#abrirProductos" text="Productos" />
-                            <MenuItem onAction="#abrirCategorias" text="Categorías" />
-                            <MenuItem onAction="#abrirCargos" text="Cargos" />
+                            <MenuItem fx:id="mnuCategorias" onAction="#abrirCategorias" text="Categorías" />
+                            <MenuItem fx:id="mnuCargos" onAction="#abrirCargos" text="Cargos" />
+                            <MenuItem fx:id="mnuEmpleados" onAction="#abrirEmpleados" text="Empleados" />
                         </items>
                     </Menu>
-                    <Menu text="Archivo">
+                    <Menu text="Cuenta">
                         <items>
-                            <MenuItem fx:id="mnuSalir" onAction="#salir" text="Salir" />
+                            <MenuItem onAction="#cerrarSesion" text="Cerrar Sesión" />
+                            <MenuItem onAction="#salir" text="Salir del Sistema" />
                         </items>
                     </Menu>
                 </menus>
             </MenuBar>
 
-            <!-- Barra de Herramientas -->
-            <ToolBar style="-fx-background-color: #FFFFFF; -fx-padding: 8px 16px; -fx-border-color: #E2E8F0; -fx-border-width: 0 0 1 0;">
+            <ToolBar style="-fx-background-color: #FFFFFF; -fx-padding: 8px 20px; -fx-border-color: #E2E8F0; -fx-border-width: 0 0 1 0;">
                 <items>
+                    <Button fx:id="btnVentas" onAction="#abrirVentas" style="-fx-background-color: #059669; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 7px 14px; -fx-cursor: hand;" text="💳 Facturación" />
                     <Button fx:id="btnProductos" onAction="#abrirProductos" style="-fx-background-color: #2563EB; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 7px 14px; -fx-cursor: hand;" text="📦 Productos" />
-                    <Button onAction="#abrirCategorias" style="-fx-background-color: #F1F5F9; -fx-text-fill: #1E293B; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 7px 14px; -fx-cursor: hand;" text="🏷️ Categorías" />
-                    <Button onAction="#abrirCargos" style="-fx-background-color: #F1F5F9; -fx-text-fill: #1E293B; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 7px 14px; -fx-cursor: hand;" text="💼 Cargos" />
+                    <Button fx:id="btnCategorias" onAction="#abrirCategorias" style="-fx-background-color: #F1F5F9; -fx-text-fill: #1E293B; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 7px 14px; -fx-cursor: hand;" text="🏷️ Categorías" />
+                    <Button fx:id="btnCargos" onAction="#abrirCargos" style="-fx-background-color: #F1F5F9; -fx-text-fill: #1E293B; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 7px 14px; -fx-cursor: hand;" text="💼 Cargos" />
+                    <Button fx:id="btnEmpleados" onAction="#abrirEmpleados" style="-fx-background-color: #F1F5F9; -fx-text-fill: #1E293B; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 7px 14px; -fx-cursor: hand;" text="👥 Empleados" />
                     <Separator orientation="VERTICAL" />
-                    <Button fx:id="btnSalir" onAction="#salir" style="-fx-background-color: #FEE2E2; -fx-text-fill: #DC2626; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 7px 14px; -fx-cursor: hand;" text="🚪 Salir" />
+                    <Button onAction="#cerrarSesion" style="-fx-background-color: #FEE2E2; -fx-text-fill: #DC2626; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 7px 14px; -fx-cursor: hand;" text="🚪 Salir" />
                 </items>
             </ToolBar>
         </VBox>
     </top>
 
     <center>
-        <VBox alignment="CENTER" spacing="12.0">
-            <Label style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #0F172A;" text="Sistema de Facturación" />
-            <Label style="-fx-font-size: 15px; -fx-text-fill: #64748B;" text="Seleccione una opción en la barra superior para comenzar." />
+        <VBox alignment="CENTER" spacing="16.0">
+            <Label style="-fx-font-size: 34px; -fx-font-weight: bold; -fx-text-fill: #0F172A;" text="Sistema de Facturación e Inventario" />
+            <HBox alignment="CENTER" spacing="8.0">
+                <Label style="-fx-font-size: 14px; -fx-text-fill: #64748B;" text="Sesión iniciada como:" />
+                <Label fx:id="lblUsuarioActual" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2563EB;" text="Usuario" />
+                <Label style="-fx-font-size: 14px; -fx-text-fill: #94A3B8;" text="|" />
+                <Label fx:id="lblRolActual" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #059669;" text="Rol" />
+            </HBox>
         </VBox>
     </center>
 </BorderPane>
