@@ -1,14 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="CONTROLLER_NAME"
-            prefHeight="400.0" prefWidth="600.0">
+<BorderPane prefHeight="600.0" prefWidth="900.0" style="-fx-background-color: #F8FAFC;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ni.edu.uam.fact_app.controller.MenuPrincipalController">
+    <top>
+        <VBox spacing="0.0">
+            <!-- Barra Superior Menú -->
+            <MenuBar style="-fx-background-color: #FFFFFF; -fx-border-color: #E2E8F0; -fx-border-width: 0 0 1 0;">
+                <menus>
+                    <Menu text="Mantenimientos">
+                        <items>
+                            <MenuItem fx:id="mnuProductos" onAction="#abrirProductos" text="Productos" />
+                            <MenuItem onAction="#abrirCategorias" text="Categorías" />
+                            <MenuItem onAction="#abrirCargos" text="Cargos" />
+                        </items>
+                    </Menu>
+                    <Menu text="Archivo">
+                        <items>
+                            <MenuItem fx:id="mnuSalir" onAction="#salir" text="Salir" />
+                        </items>
+                    </Menu>
+                </menus>
+            </MenuBar>
 
-</AnchorPane>
+            <!-- Barra de Herramientas -->
+            <ToolBar style="-fx-background-color: #FFFFFF; -fx-padding: 8px 16px; -fx-border-color: #E2E8F0; -fx-border-width: 0 0 1 0;">
+                <items>
+                    <Button fx:id="btnProductos" onAction="#abrirProductos" style="-fx-background-color: #2563EB; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 7px 14px; -fx-cursor: hand;" text="📦 Productos" />
+                    <Button onAction="#abrirCategorias" style="-fx-background-color: #F1F5F9; -fx-text-fill: #1E293B; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 7px 14px; -fx-cursor: hand;" text="🏷️ Categorías" />
+                    <Button onAction="#abrirCargos" style="-fx-background-color: #F1F5F9; -fx-text-fill: #1E293B; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 7px 14px; -fx-cursor: hand;" text="💼 Cargos" />
+                    <Separator orientation="VERTICAL" />
+                    <Button fx:id="btnSalir" onAction="#salir" style="-fx-background-color: #FEE2E2; -fx-text-fill: #DC2626; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-padding: 7px 14px; -fx-cursor: hand;" text="🚪 Salir" />
+                </items>
+            </ToolBar>
+        </VBox>
+    </top>
+
+    <center>
+        <VBox alignment="CENTER" spacing="12.0">
+            <Label style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #0F172A;" text="Sistema de Facturación" />
+            <Label style="-fx-font-size: 15px; -fx-text-fill: #64748B;" text="Seleccione una opción en la barra superior para comenzar." />
+        </VBox>
+    </center>
+</BorderPane>
