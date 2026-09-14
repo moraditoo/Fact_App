@@ -3,11 +3,10 @@ package ni.edu.uam.fact_app.controller;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import ni.edu.uam.fact_app.model.*;
 import ni.edu.uam.fact_app.util.DataManager;
@@ -20,10 +19,10 @@ public class VentaController {
 
     @FXML private Label lblNumeroFactura;
     @FXML private Label lblVendedor;
+    @FXML private TextField txtBuscarProducto;
     @FXML private ComboBox<Producto> cmbProducto;
     @FXML private TextField txtCantidad;
     @FXML private Label lblStockDisponible;
-    @FXML private ImageView imgMiniatura;
 
     @FXML private TableView<DetalleVenta> tblDetalle;
     @FXML private TableColumn<DetalleVenta, String> colCodigo;
@@ -37,6 +36,8 @@ public class VentaController {
     @FXML private Label lblTotal;
 
     private final ObservableList<DetalleVenta> carrito = FXCollections.observableArrayList();
+    private ObservableList<Producto> listaDisponibles = FXCollections.observableArrayList();
+    private FilteredList<Producto> filtroDisponibles;
     private static int correlativoFactura = 1001;
 
     @FXML
@@ -49,23 +50,26 @@ public class VentaController {
 
         recargarComboProductos();
 
+        // Búsqueda en caliente: al escribir en txtBuscarProducto, se filtra el ComboBox
+        filtroDisponibles = new FilteredList<>(listaDisponibles, p -> true);
+        cmbProducto.setItems(filtroDisponibles);
+
+        txtBuscarProducto.textProperty().addListener((obs, oldV, texto) -> {
+            filtroDisponibles.setPredicate(p -> {
+                if (texto == null || texto.isBlank()) return true;
+                String b = texto.toLowerCase();
+                return p.getNombre().toLowerCase().contains(b) || p.getCodigo().toLowerCase().contains(b);
+            });
+            if (!filtroDisponibles.isEmpty()) {
+                cmbProducto.setValue(filtroDisponibles.get(0));
+            }
+        });
+
         cmbProducto.getSelectionModel().selectedItemProperty().addListener((obs, oldV, prod) -> {
             if (prod != null) {
                 lblStockDisponible.setText("Disponibles: " + prod.getExistencia() + " unids.");
-                if (prod.getRutaImagen() != null && !prod.getRutaImagen().isBlank()) {
-                    try {
-                        imgMiniatura.setImage(new Image(prod.getRutaImagen(), true));
-                    } catch (Exception e) {
-                        imgMiniatura.setImage(null);
-                    }
-                } else {
-                    imgMiniatura.setImage(null);
-                }
             } else {
                 lblStockDisponible.setText("Disponibles: -");
-                if (imgMiniatura != null) {
-                    imgMiniatura.setImage(null);
-                }
             }
         });
 
@@ -80,14 +84,12 @@ public class VentaController {
     }
 
     private void recargarComboProductos() {
-        ObservableList<Producto> disponibles = FXCollections.observableArrayList();
-        // Lee directamente desde DataManager y valida existencia sin el campo activo
+        listaDisponibles.clear();
         for (Producto p : DataManager.getProductos()) {
             if (p.getExistencia() > 0) {
-                disponibles.add(p);
+                listaDisponibles.add(p);
             }
         }
-        cmbProducto.setItems(disponibles);
     }
 
     @FXML
@@ -119,7 +121,7 @@ public class VentaController {
 
         if ((yaEnCarrito + cantidad) > prod.getExistencia()) {
             mensaje(Alert.AlertType.ERROR, "Stock insuficiente. En stock: " + prod.getExistencia()
-                    + " (Ya tienes " + yaEnCarrito + " en la factura)");
+                    + " (Ya tienes " + yaEnCarrito + " en la orden)");
             return;
         }
 
@@ -140,6 +142,7 @@ public class VentaController {
         tblDetalle.refresh();
         calcularTotales();
         txtCantidad.setText("1");
+        txtBuscarProducto.clear();
         cmbProducto.getSelectionModel().clearSelection();
     }
 
@@ -150,7 +153,7 @@ public class VentaController {
             carrito.remove(sel);
             calcularTotales();
         } else {
-            mensaje(Alert.AlertType.WARNING, "Seleccione una fila de la tabla para quitar.");
+            mensaje(Alert.AlertType.WARNING, "Seleccione un artículo para remover.");
         }
     }
 
@@ -179,10 +182,9 @@ public class VentaController {
             p.setExistencia(p.getExistencia() - d.getCantidad());
         }
 
-        // Guarda el stock actualizado permanentemente en disco
         DataManager.guardarProductos();
 
-        mensaje(Alert.AlertType.INFORMATION, "¡Factura " + lblNumeroFactura.getText() + " procesada con éxito!\nInventario actualizado.");
+        mensaje(Alert.AlertType.INFORMATION, "¡Factura " + lblNumeroFactura.getText() + " procesada con éxito!\nInventario descontado.");
         correlativoFactura++;
         ((Stage) txtCantidad.getScene().getWindow()).close();
     }

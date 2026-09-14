@@ -1,45 +1,199 @@
 [ {
   "id" : 1,
-  "codigo" : "ALM-001",
-  "nombre" : "Arroz Faisán 1lb",
+  "codigo" : "GRA-001",
+  "nombre" : "Arroz Faisán 80/20 1lb",
   "categoria" : {
     "id" : 1,
     "nombre" : "Alimentos"
   },
-  "precioVenta" : 24.50,
-  "existencia" : 150,
+  "precioVenta" : 24.00,
+  "existencia" : 198,
   "rutaImagen" : null
 }, {
   "id" : 2,
-  "codigo" : "ALM-002",
-  "nombre" : "Frijoles Rojos 1lb",
+  "codigo" : "GRA-002",
+  "nombre" : "Frijol Rojo Nacional 1lb",
   "categoria" : {
     "id" : 1,
     "nombre" : "Alimentos"
   },
-  "precioVenta" : 32.00,
-  "existencia" : 119,
+  "precioVenta" : 32.50,
+  "existencia" : 180,
   "rutaImagen" : null
 }, {
   "id" : 3,
-  "codigo" : "BEB-001",
-  "nombre" : "Coca Cola 2L",
+  "codigo" : "GRA-003",
+  "nombre" : "Azúcar Sulinsa Blanca 2lb",
   "categoria" : {
-    "id" : 2,
-    "nombre" : "Bebidas"
+    "id" : 1,
+    "nombre" : "Alimentos"
+  },
+  "precioVenta" : 28.00,
+  "existencia" : 120,
+  "rutaImagen" : null
+}, {
+  "id" : 4,
+  "codigo" : "GRA-004",
+  "nombre" : "Aceite Corona Vegetal 1L",
+  "categoria" : {
+    "id" : 1,
+    "nombre" : "Alimentos"
+  },
+  "precioVenta" : 65.00,
+  "existencia" : 74,
+  "rutaImagen" : null
+}, {
+  "id" : 5,
+  "codigo" : "GRA-005",
+  "nombre" : "Pinolillo Tradicional El Chontaleño 400g",
+  "categoria" : {
+    "id" : 1,
+    "nombre" : "Alimentos"
+  },
+  "precioVenta" : 30.00,
+  "existencia" : 60,
+  "rutaImagen" : null
+}, {
+  "id" : 6,
+  "codigo" : "GRA-006",
+  "nombre" : "Café Presto Instantáneo Frasco 100g",
+  "categoria" : {
+    "id" : 1,
+    "nombre" : "Alimentos"
   },
   "precioVenta" : 48.00,
   "existencia" : 90,
   "rutaImagen" : null
 }, {
-  "id" : 4,
-  "codigo" : "LMP-001",
-  "nombre" : "Detergente Roma 1kg",
+  "id" : 7,
+  "codigo" : "LAC-001",
+  "nombre" : "Leche Parmalat Entera UHT 1L",
+  "categoria" : {
+    "id" : 2,
+    "nombre" : "Bebidas"
+  },
+  "precioVenta" : 42.00,
+  "existencia" : 110,
+  "rutaImagen" : null
+}, {
+  "id" : 8,
+  "codigo" : "LAC-002",
+  "nombre" : "Queso Seco Chontaleño 1lb",
+  "categoria" : {
+    "id" : 2,
+    "nombre" : "Bebidas"
+  },
+  "precioVenta" : 85.00,
+  "existencia" : 50,
+  "rutaImagen" : null
+}, {
+  "id" : 9,
+  "codigo" : "LAC-003",
+  "nombre" : "Crema Pura La Perfecta 1lb",
+  "categoria" : {
+    "id" : 2,
+    "nombre" : "Bebidas"
+  },
+  "precioVenta" : 45.00,
+  "existencia" : 40,
+  "rutaImagen" : null
+}, {
+  "id" : 10,
+  "codigo" : "LAC-004",
+  "nombre" : "Helado Eskimo Vainilla 1 Galón",
+  "categoria" : {
+    "id" : 2,
+    "nombre" : "Bebidas"
+  },
+  "precioVenta" : 195.00,
+  "existencia" : 25,
+  "rutaImagen" : null
+}, {
+  "id" : 11,
+  "codigo" : "BEB-001",
+  "nombre" : "Coca Cola 2L Descartable",
   "categoria" : {
     "id" : 3,
     "nombre" : "Limpieza"
   },
+  "precioVenta" : 48.00,
+  "existencia" : 130,
+  "rutaImagen" : null
+}, {
+  "id" : 12,
+  "codigo" : "BEB-002",
+  "nombre" : "Cerveza Toña Botella 12oz",
+  "categoria" : {
+    "id" : 3,
+    "nombre" : "Limpieza"
+  },
+  "precioVenta" : 40.00,
+  "existencia" : 150,
+  "rutaImagen" : null
+}, {
+  "id" : 13,
+  "codigo" : "BEB-003",
+  "nombre" : "Cerveza Victoria Clásica 12oz",
+  "categoria" : {
+    "id" : 3,
+    "nombre" : "Limpieza"
+  },
+  "precioVenta" : 40.00,
+  "existencia" : 100,
+  "rutaImagen" : null
+}, {
+  "id" : 14,
+  "codigo" : "BEB-004",
+  "nombre" : "Agua Purificada Fuente Pura 600ml",
+  "categoria" : {
+    "id" : 3,
+    "nombre" : "Limpieza"
+  },
+  "precioVenta" : 16.00,
+  "existencia" : 220,
+  "rutaImagen" : null
+}, {
+  "id" : 15,
+  "codigo" : "CAR-001",
+  "nombre" : "Pollo Tip-Top Pierna y Muslo 1lb",
+  "categoria" : {
+    "id" : 1,
+    "nombre" : "Alimentos"
+  },
+  "precioVenta" : 48.00,
+  "existencia" : 80,
+  "rutaImagen" : null
+}, {
+  "id" : 16,
+  "codigo" : "CAR-002",
+  "nombre" : "Salchichón Cainsa Tradicional 1lb",
+  "categoria" : {
+    "id" : 1,
+    "nombre" : "Alimentos"
+  },
+  "precioVenta" : 62.00,
+  "existencia" : 60,
+  "rutaImagen" : null
+}, {
+  "id" : 17,
+  "codigo" : "LMP-001",
+  "nombre" : "Detergente Roma en Bolsa 1kg",
+  "categoria" : {
+    "id" : 1,
+    "nombre" : "Alimentos"
+  },
   "precioVenta" : 55.00,
-  "existencia" : 65,
+  "existencia" : 95,
+  "rutaImagen" : null
+}, {
+  "id" : 18,
+  "codigo" : "LMP-002",
+  "nombre" : "Jabón Axion Limón Pasta 450g",
+  "categoria" : {
+    "id" : 1,
+    "nombre" : "Alimentos"
+  },
+  "precioVenta" : 36.00,
+  "existencia" : 109,
   "rutaImagen" : null
 } ]

@@ -36,15 +36,10 @@ public class MenuPrincipalController {
         }
     }
 
-    /**
-     * Aplica el control de acceso basado en roles (RBAC)
-     */
     private void configurarPermisosSegunRol() {
         if (SesionUsuario.esAdministrador()) {
-            // Administrador tiene acceso completo
             habilitarTodo(true);
         } else if (SesionUsuario.esCajero()) {
-            // Cajero solo tiene acceso al punto de venta y consulta de catálogo
             btnCargos.setDisable(true);
             mnuCargos.setDisable(true);
             btnEmpleados.setDisable(true);
@@ -52,7 +47,6 @@ public class MenuPrincipalController {
             btnCategorias.setDisable(true);
             mnuCategorias.setDisable(true);
         } else if (SesionUsuario.esBodeguero()) {
-            // Bodeguero solo gestiona inventario
             btnVentas.setDisable(true);
             mnuVentas.setDisable(true);
             btnCargos.setDisable(true);
@@ -132,7 +126,7 @@ public class MenuPrincipalController {
 
     @FXML
     private void salir() {
-        Alert a = new Alert(Alert.AlertType.CONFIRMATION, "¿Desea cerrar la aplicación?", ButtonType.OK, ButtonType.CANCEL);
+        Alert a = new Alert(Alert.AlertType.CONFIRMATION, "¿Desea salir del sistema?", ButtonType.OK, ButtonType.CANCEL);
         if (a.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
             Platform.exit();
         }

@@ -6,19 +6,22 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="680.0" prefWidth="1050.0" style="-fx-background-color: #F8FAFC;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ni.edu.uam.fact_app.controller.MenuPrincipalController">
+<BorderPane prefHeight="720.0" prefWidth="1100.0" style="-fx-background-color: #EEF2F6;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ni.edu.uam.fact_app.controller.MenuPrincipalController">
+
+    <!-- ENCABEZADO SUPERIOR CON LOGO Y TÍTULO -->
     <top>
-        <VBox spacing="0.0">
+        <VBox spacing="0.0" style="-fx-background-color: #FFFFFF; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 3);" BorderPane.alignment="CENTER">
+
             <MenuBar style="-fx-background-color: #FFFFFF; -fx-border-color: #E2E8F0; -fx-border-width: 0 0 1 0;">
                 <menus>
                     <Menu text="Módulos">
@@ -33,121 +36,170 @@
                     <Menu text="Sesión">
                         <items>
                             <MenuItem onAction="#cerrarSesion" text="Cerrar Sesión" />
-                            <MenuItem onAction="#salir" text="Salir del Sistema" />
+                            <MenuItem onAction="#salir" text="Salir de la Aplicación" />
                         </items>
                     </Menu>
                 </menus>
             </MenuBar>
 
-            <!-- Barra con iconos PNG locales de 32x32 -->
-            <ToolBar style="-fx-background-color: #FFFFFF; -fx-padding: 8px 18px; -fx-border-color: #E2E8F0; -fx-border-width: 0 0 1 0;">
-                <items>
-                    <!-- Botón Facturación -->
-                    <Button fx:id="btnVentas" contentDisplay="GRAPHIC_ONLY" minHeight="46.0" minWidth="52.0" onAction="#abrirVentas" style="-fx-background-color: #ECFDF5; -fx-border-color: #A7F3D0; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;">
-                        <graphic>
-                            <ImageView fitHeight="32.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">
-                                <image>
-                                    <Image url="@../icons/pos.png" />
-                                </image>
-                            </ImageView>
-                        </graphic>
-                        <tooltip>
-                            <Tooltip text="Facturación / Registrar ventas y cobros" />
-                        </tooltip>
-                    </Button>
+            <HBox alignment="CENTER_LEFT" spacing="18.0">
+                <padding>
+                    <Insets bottom="16.0" left="36.0" right="36.0" top="16.0" />
+                </padding>
+                <children>
+                    <!-- Logo PNG de tu carpeta images -->
+                    <ImageView fitHeight="54.0" fitWidth="54.0" pickOnBounds="true" preserveRatio="true">
+                        <image>
+                            <Image url="@../images/logo.png" />
+                        </image>
+                    </ImageView>
 
-                    <!-- Botón Productos -->
-                    <Button fx:id="btnProductos" contentDisplay="GRAPHIC_ONLY" minHeight="46.0" minWidth="52.0" onAction="#abrirProductos" style="-fx-background-color: #EFF6FF; -fx-border-color: #BFDBFE; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;">
-                        <graphic>
-                            <ImageView fitHeight="32.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">
-                                <image>
-                                    <Image url="@../icons/productos.png" />
-                                </image>
-                            </ImageView>
-                        </graphic>
-                        <tooltip>
-                            <Tooltip text="Productos / Catálogo e inventario" />
-                        </tooltip>
-                    </Button>
+                    <VBox spacing="3.0" HBox.hgrow="ALWAYS">
+                        <Label style="-fx-font-size: 26px; -fx-font-weight: 900; -fx-text-fill: #0F172A; -fx-letter-spacing: -0.5px;" text="SISTEMA DE FACTURACIÓN E INVENTARIO" />
+                        <Label style="-fx-font-size: 13px; -fx-text-fill: #64748B;" text="Panel central de control y operaciones comerciales" />
+                    </VBox>
 
-                    <!-- Botón Categorías -->
-                    <Button fx:id="btnCategorias" contentDisplay="GRAPHIC_ONLY" minHeight="46.0" minWidth="52.0" onAction="#abrirCategorias" style="-fx-background-color: #F8FAFC; -fx-border-color: #E2E8F0; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;">
-                        <graphic>
-                            <ImageView fitHeight="32.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">
-                                <image>
-                                    <Image url="@../icons/categoria.png" />
-                                </image>
-                            </ImageView>
-                        </graphic>
-                        <tooltip>
-                            <Tooltip text="Categorías / Clasificación de productos" />
-                        </tooltip>
-                    </Button>
-
-                    <!-- Botón Cargos -->
-                    <Button fx:id="btnCargos" contentDisplay="GRAPHIC_ONLY" minHeight="46.0" minWidth="52.0" onAction="#abrirCargos" style="-fx-background-color: #F8FAFC; -fx-border-color: #E2E8F0; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;">
-                        <graphic>
-                            <ImageView fitHeight="32.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">
-                                <image>
-                                    <Image url="@../icons/cargo.png" />
-                                </image>
-                            </ImageView>
-                        </graphic>
-                        <tooltip>
-                            <Tooltip text="Cargos / Roles laborales" />
-                        </tooltip>
-                    </Button>
-
-                    <!-- Botón Empleados -->
-                    <Button fx:id="btnEmpleados" contentDisplay="GRAPHIC_ONLY" minHeight="46.0" minWidth="52.0" onAction="#abrirEmpleados" style="-fx-background-color: #F8FAFC; -fx-border-color: #E2E8F0; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;">
-                        <graphic>
-                            <ImageView fitHeight="32.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">
-                                <image>
-                                    <Image url="@../icons/empleados.png" />
-                                </image>
-                            </ImageView>
-                        </graphic>
-                        <tooltip>
-                            <Tooltip text="Empleados / Gestión de personal" />
-                        </tooltip>
-                    </Button>
-
-                    <Separator orientation="VERTICAL" />
-
-                    <!-- Botón Cerrar Sesión -->
-                    <Button contentDisplay="GRAPHIC_ONLY" minHeight="46.0" minWidth="52.0" onAction="#cerrarSesion" style="-fx-background-color: #FEF2F2; -fx-border-color: #FECACA; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;">
-                        <graphic>
-                            <ImageView fitHeight="32.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">
-                                <image>
-                                    <Image url="@../icons/cerrar.png" />
-                                </image>
-                            </ImageView>
-                        </graphic>
-                        <tooltip>
-                            <Tooltip text="Cerrar sesión" />
-                        </tooltip>
-                    </Button>
-                </items>
-            </ToolBar>
+                    <HBox alignment="CENTER" spacing="10.0" style="-fx-background-color: #F8FAFC; -fx-padding: 8px 18px; -fx-border-color: #E2E8F0; -fx-border-radius: 24px; -fx-background-radius: 24px;">
+                        <Label style="-fx-font-size: 12px; -fx-text-fill: #64748B;" text="Conectado:" />
+                        <Label fx:id="lblUsuarioActual" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #2563EB;" text="Usuario" />
+                        <Label style="-fx-font-size: 12px; -fx-text-fill: #CBD5E1;" text="•" />
+                        <Label fx:id="lblRolActual" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #059669;" text="Rol" />
+                    </HBox>
+                </children>
+            </HBox>
         </VBox>
     </top>
 
-    <!-- Centro con el logo principal -->
+    <!-- TILES ESTILO METRO USANDO TUS ICONOS PNG -->
     <center>
-        <VBox alignment="CENTER" spacing="18.0">
-            <ImageView fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true">
-                <image>
-                    <Image url="@../images/logo.png" />
-                </image>
-            </ImageView>
-            <Label style="-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: #0F172A;" text="Sistema de Facturación e Inventario" />
-            <HBox alignment="CENTER" spacing="10.0" style="-fx-background-color: white; -fx-padding: 10px 24px; -fx-border-color: #E2E8F0; -fx-border-radius: 30px; -fx-background-radius: 30px;">
-                <Label style="-fx-font-size: 13px; -fx-text-fill: #64748B;" text="Usuario conectado:" />
-                <Label fx:id="lblUsuarioActual" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #2563EB;" text="Usuario" />
-                <Label style="-fx-font-size: 13px; -fx-text-fill: #CBD5E1;" text="•" />
-                <Label style="-fx-font-size: 13px; -fx-text-fill: #64748B;" text="Rol:" />
-                <Label fx:id="lblRolActual" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #059669;" text="Rol" />
-            </HBox>
+        <VBox alignment="CENTER" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets bottom="30.0" left="40.0" right="40.0" top="20.0" />
+            </padding>
+            <children>
+                <GridPane alignment="CENTER" hgap="24.0" vgap="24.0">
+                    <columnConstraints>
+                        <ColumnConstraints halignment="CENTER" hgrow="NEVER" prefWidth="260.0" />
+                        <ColumnConstraints halignment="CENTER" hgrow="NEVER" prefWidth="260.0" />
+                        <ColumnConstraints halignment="CENTER" hgrow="NEVER" prefWidth="260.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints prefHeight="160.0" valignment="CENTER" vgrow="NEVER" />
+                        <RowConstraints prefHeight="160.0" valignment="CENTER" vgrow="NEVER" />
+                    </rowConstraints>
+                    <children>
+
+                        <!-- TILE 1: FACTURACIÓN (pos.png) -->
+                        <Button fx:id="btnVentas" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onAction="#abrirVentas" style="-fx-background-color: #059669; -fx-background-radius: 12px; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(5,150,105,0.35), 10, 0, 0, 4);" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                            <graphic>
+                                <VBox alignment="CENTER" spacing="10.0">
+                                    <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
+                                        <image>
+                                            <Image url="@../icons/pos.png" />
+                                        </image>
+                                    </ImageView>
+                                    <Label style="-fx-font-size: 17px; -fx-font-weight: 800; -fx-text-fill: WHITE;" text="Facturación" />
+                                    <Label style="-fx-font-size: 11px; -fx-text-fill: #D1FAE5;" text="Emisión y cobro de ventas" />
+                                </VBox>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Punto de venta y facturación" />
+                            </tooltip>
+                        </Button>
+
+                        <!-- TILE 2: PRODUCTOS (productos.png) -->
+                        <Button fx:id="btnProductos" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onAction="#abrirProductos" style="-fx-background-color: #2563EB; -fx-background-radius: 12px; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(37,99,235,0.35), 10, 0, 0, 4);" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                            <graphic>
+                                <VBox alignment="CENTER" spacing="10.0">
+                                    <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
+                                        <image>
+                                            <Image url="@../icons/productos.png" />
+                                        </image>
+                                    </ImageView>
+                                    <Label style="-fx-font-size: 17px; -fx-font-weight: 800; -fx-text-fill: WHITE;" text="Productos" />
+                                    <Label style="-fx-font-size: 11px; -fx-text-fill: #DBEAFE;" text="Catálogo e inventario de existencias" />
+                                </VBox>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Control de inventario y precios" />
+                            </tooltip>
+                        </Button>
+
+                        <!-- TILE 3: CATEGORÍAS (categoria.png) -->
+                        <Button fx:id="btnCategorias" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onAction="#abrirCategorias" style="-fx-background-color: #D97706; -fx-background-radius: 12px; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(217,119,6,0.35), 10, 0, 0, 4);" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                            <graphic>
+                                <VBox alignment="CENTER" spacing="10.0">
+                                    <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
+                                        <image>
+                                            <Image url="@../icons/categoria.png" />
+                                        </image>
+                                    </ImageView>
+                                    <Label style="-fx-font-size: 17px; -fx-font-weight: 800; -fx-text-fill: WHITE;" text="Categorías" />
+                                    <Label style="-fx-font-size: 11px; -fx-text-fill: #FEF3C7;" text="Familias y líneas de producto" />
+                                </VBox>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Gestión de familias de artículos" />
+                            </tooltip>
+                        </Button>
+
+                        <!-- TILE 4: CARGOS (cargo.png) -->
+                        <Button fx:id="btnCargos" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onAction="#abrirCargos" style="-fx-background-color: #7C3AED; -fx-background-radius: 12px; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(124,58,237,0.35), 10, 0, 0, 4);" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                            <graphic>
+                                <VBox alignment="CENTER" spacing="10.0">
+                                    <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
+                                        <image>
+                                            <Image url="@../icons/cargo.png" />
+                                        </image>
+                                    </ImageView>
+                                    <Label style="-fx-font-size: 17px; -fx-font-weight: 800; -fx-text-fill: WHITE;" text="Cargos" />
+                                    <Label style="-fx-font-size: 11px; -fx-text-fill: #EDE9FE;" text="Roles y perfiles laborales" />
+                                </VBox>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Definición de puestos de trabajo" />
+                            </tooltip>
+                        </Button>
+
+                        <!-- TILE 5: EMPLEADOS (empleados.png) -->
+                        <Button fx:id="btnEmpleados" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onAction="#abrirEmpleados" style="-fx-background-color: #0891B2; -fx-background-radius: 12px; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(8,145,178,0.35), 10, 0, 0, 4);" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                            <graphic>
+                                <VBox alignment="CENTER" spacing="10.0">
+                                    <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
+                                        <image>
+                                            <Image url="@../icons/empleados.png" />
+                                        </image>
+                                    </ImageView>
+                                    <Label style="-fx-font-size: 17px; -fx-font-weight: 800; -fx-text-fill: WHITE;" text="Empleados" />
+                                    <Label style="-fx-font-size: 11px; -fx-text-fill: #CFFAFE;" text="Colaboradores del sistema" />
+                                </VBox>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Control y registro de personal" />
+                            </tooltip>
+                        </Button>
+
+                        <!-- TILE 6: CERRAR SESIÓN (cerrar.png) -->
+                        <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" onAction="#cerrarSesion" style="-fx-background-color: #DC2626; -fx-background-radius: 12px; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(220,38,38,0.35), 10, 0, 0, 4);" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                            <graphic>
+                                <VBox alignment="CENTER" spacing="10.0">
+                                    <ImageView fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
+                                        <image>
+                                            <Image url="@../icons/cerrar.png" />
+                                        </image>
+                                    </ImageView>
+                                    <Label style="-fx-font-size: 17px; -fx-font-weight: 800; -fx-text-fill: WHITE;" text="Cerrar Sesión" />
+                                    <Label style="-fx-font-size: 11px; -fx-text-fill: #FEE2E2;" text="Regresar a la pantalla de login" />
+                                </VBox>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Cerrar sesión activa" />
+                            </tooltip>
+                        </Button>
+
+                    </children>
+                </GridPane>
+            </children>
         </VBox>
     </center>
 </BorderPane>

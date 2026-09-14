@@ -19,47 +19,53 @@
     <!-- Encabezado -->
     <HBox alignment="CENTER_LEFT" spacing="12.0">
         <VBox spacing="3.0">
-            <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #0F172A;" text="Nueva Venta / Factura" />
-            <Label style="-fx-font-size: 13px; -fx-text-fill: #64748B;" text="Seleccione productos y agréguelos a la orden de compra" />
+            <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #0F172A;" text="Punto de Venta / Facturación" />
+            <Label style="-fx-font-size: 13px; -fx-text-fill: #64748B;" text="Emisión de comprobante de compra y control de inventario" />
         </VBox>
         <Region HBox.hgrow="ALWAYS" />
         <VBox alignment="CENTER_RIGHT">
             <Label fx:id="lblNumeroFactura" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2563EB;" text="FAC-1001" />
             <HBox spacing="6.0">
-                <Label style="-fx-font-size: 12px; -fx-text-fill: #64748B;" text="Cajero:" />
+                <Label style="-fx-font-size: 12px; -fx-text-fill: #64748B;" text="Atiende:" />
                 <Label fx:id="lblVendedor" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #1E293B;" text="Vendedor" />
             </HBox>
         </VBox>
     </HBox>
 
-    <!-- Selector de Productos (con minWidth fijo para que nunca se comprima) -->
-    <HBox alignment="CENTER_LEFT" spacing="14.0" style="-fx-background-color: white; -fx-background-radius: 10px; -fx-border-color: #E2E8F0; -fx-padding: 16px;">
+    <!-- Selector de Productos con Buscador Rápido -->
+    <HBox alignment="CENTER_LEFT" spacing="12.0" style="-fx-background-color: white; -fx-background-radius: 10px; -fx-border-color: #E2E8F0; -fx-padding: 16px;">
 
-        <!-- ComboBox de Productos -->
-        <VBox minWidth="380.0" spacing="5.0" HBox.hgrow="ALWAYS">
-            <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #475569;" text="PRODUCTO DISPONIBLE" />
+        <!-- Campo de búsqueda rápida -->
+        <VBox minWidth="180.0" prefWidth="200.0" spacing="5.0">
+            <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #475569;" text="🔍 BUSCAR ARTÍCULO" />
+            <TextField fx:id="txtBuscarProducto" prefHeight="38.0" promptText="Escribe arroz, toña..." style="-fx-background-color: #F8FAFC; -fx-border-color: #CBD5E1; -fx-border-radius: 6px;" />
+        </VBox>
+
+        <!-- ComboBox Filtrado -->
+        <VBox minWidth="320.0" spacing="5.0" HBox.hgrow="ALWAYS">
+            <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #475569;" text="PRODUCTO SELECCIONADO" />
             <ComboBox fx:id="cmbProducto" maxWidth="1.7976931348623157E308" prefHeight="38.0" promptText="Seleccionar producto del catálogo..." style="-fx-background-color: #F8FAFC; -fx-border-color: #CBD5E1; -fx-border-radius: 6px;" />
         </VBox>
 
-        <!-- Etiqueta de Stock -->
-        <VBox alignment="CENTER_LEFT" minWidth="130.0" spacing="5.0">
-            <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #475569;" text="DISPONIBILIDAD" />
+        <!-- Stock -->
+        <VBox alignment="CENTER_LEFT" minWidth="120.0" spacing="5.0">
+            <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #475569;" text="DISPONIBLE" />
             <Label fx:id="lblStockDisponible" style="-fx-font-size: 13px; -fx-text-fill: #059669; -fx-font-weight: bold;" text="Disponibles: -" />
         </VBox>
 
         <!-- Cantidad -->
-        <VBox minWidth="90.0" spacing="5.0">
+        <VBox minWidth="80.0" spacing="5.0">
             <Label style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #475569;" text="CANTIDAD" />
             <TextField fx:id="txtCantidad" prefHeight="38.0" style="-fx-alignment: CENTER; -fx-font-weight: bold; -fx-background-color: #F8FAFC; -fx-border-color: #CBD5E1; -fx-border-radius: 6px;" text="1" />
         </VBox>
 
-        <!-- Botones con tamaño mínimo garantizado -->
+        <!-- Botones de Acción -->
         <VBox alignment="BOTTOM_CENTER" minWidth="110.0">
             <Button maxWidth="1.7976931348623157E308" minHeight="38.0" minWidth="105.0" onAction="#agregarAlCarrito" style="-fx-background-color: #2563EB; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-cursor: hand;" text="+ Agregar" />
         </VBox>
 
         <VBox alignment="BOTTOM_CENTER" minWidth="110.0">
-            <Button maxWidth="1.7976931348623157E308" minHeight="38.0" minWidth="105.0" onAction="#removerDelCarrito" style="-fx-background-color: #FEE2E2; -fx-text-fill: #DC2626; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-cursor: hand;" text="Eliminar Ítem" />
+            <Button maxWidth="1.7976931348623157E308" minHeight="38.0" minWidth="105.0" onAction="#removerDelCarrito" style="-fx-background-color: #FEE2E2; -fx-text-fill: #DC2626; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-cursor: hand;" text="Quitar Ítem" />
         </VBox>
     </HBox>
 
@@ -77,7 +83,7 @@
         </columnResizePolicy>
     </TableView>
 
-    <!-- Panel Inferior de Totales y Cobro -->
+    <!-- Panel de Totales -->
     <HBox alignment="CENTER_RIGHT" spacing="24.0" style="-fx-background-color: white; -fx-background-radius: 10px; -fx-border-color: #E2E8F0; -fx-padding: 18px;">
         <VBox alignment="CENTER_LEFT" spacing="6.0">
             <HBox spacing="10.0">
