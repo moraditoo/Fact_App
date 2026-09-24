@@ -1,5 +1,8 @@
 package ni.edu.uam.fact_app.controller;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -8,10 +11,12 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import ni.edu.uam.fact_app.dao.CategoriaDAO;
 import ni.edu.uam.fact_app.model.Categoria;
 
 import java.sql.SQLException;
+import java.util.List;
 
 public class CategoriaController {
 
@@ -26,6 +31,7 @@ public class CategoriaController {
 
     private final CategoriaDAO categoriaDAO = new CategoriaDAO();
     private final ObservableList<Categoria> categoriasObservable = FXCollections.observableArrayList();
+    private Timeline autoRefrescoTimeline;
 
     @FXML
     private void initialize() {
@@ -54,6 +60,38 @@ public class CategoriaController {
         });
 
         chkActiva.setSelected(true);
+
+        iniciarAutoRefresco();
+    }
+
+    private void iniciarAutoRefresco() {
+        autoRefrescoTimeline = new Timeline(new KeyFrame(Duration.seconds(2.5), event -> {
+            Thread hilo = new Thread(() -> {
+                try {
+                    List<Categoria> nuevas = categoriaDAO.listar();
+                    Platform.runLater(() -> {
+                        Categoria seleccionada = tblCategorias.getSelectionModel().getSelectedItem();
+                        Integer idSeleccionado = seleccionada != null ? seleccionada.getId() : null;
+
+                        categoriasObservable.setAll(nuevas);
+
+                        if (idSeleccionado != null) {
+                            for (Categoria c : tblCategorias.getItems()) {
+                                if (c.getId().equals(idSeleccionado)) {
+                                    tblCategorias.getSelectionModel().select(c);
+                                    break;
+                                }
+                            }
+                        }
+                    });
+                } catch (SQLException ignored) { }
+            });
+            hilo.setDaemon(true);
+            hilo.start();
+        }));
+
+        autoRefrescoTimeline.setCycleCount(Timeline.INDEFINITE);
+        autoRefrescoTimeline.play();
     }
 
     private void cargarDatos() {
@@ -120,6 +158,9 @@ public class CategoriaController {
 
     @FXML
     private void cerrar() {
+        if (autoRefrescoTimeline != null) {
+            autoRefrescoTimeline.stop();
+        }
         ((Stage) txtNombre.getScene().getWindow()).close();
     }
 
