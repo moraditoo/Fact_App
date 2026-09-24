@@ -10,6 +10,12 @@ import lombok.NoArgsConstructor;
 public class Categoria {
     private Integer id;
     private String nombre;
+    private boolean activa;
+
+    public Categoria(String nombre, boolean activa) {
+        this.nombre = nombre;
+        this.activa = activa;
+    }
 
     @Override
     public String toString() {

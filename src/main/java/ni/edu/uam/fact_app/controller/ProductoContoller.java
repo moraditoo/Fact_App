@@ -1,5 +1,7 @@
 package ni.edu.uam.fact_app.controller;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
@@ -9,13 +11,14 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import ni.edu.uam.fact_app.dao.CategoriaDAO;
+import ni.edu.uam.fact_app.dao.ProductoDAO;
 import ni.edu.uam.fact_app.model.Categoria;
 import ni.edu.uam.fact_app.model.Producto;
-import ni.edu.uam.fact_app.util.DataManager;
 
 import java.io.File;
 import java.math.BigDecimal;
-import java.util.function.UnaryOperator;
+import java.sql.SQLException;
 
 public class ProductoContoller {
 
@@ -24,6 +27,7 @@ public class ProductoContoller {
     @FXML private TextField txtPrecio;
     @FXML private TextField txtExistencia;
     @FXML private ComboBox<Categoria> cmbCategoria;
+    @FXML private CheckBox chkActivo;
     @FXML private ImageView imgProducto;
     @FXML private TextField txtBuscar;
 
@@ -33,24 +37,32 @@ public class ProductoContoller {
     @FXML private TableColumn<Producto, Categoria> colCategoria;
     @FXML private TableColumn<Producto, BigDecimal> colPrecio;
     @FXML private TableColumn<Producto, Integer> colExistencia;
+    @FXML private TableColumn<Producto, String> colActivo;
 
-    private ObservableList<Producto> productos;
+    private final ProductoDAO productoDAO = new ProductoDAO();
+    private final CategoriaDAO categoriaDAO = new CategoriaDAO();
+    private final ObservableList<Producto> productosObservable = FXCollections.observableArrayList();
     private String rutaImagenActual;
 
     @FXML
     private void initialize() {
-        productos = DataManager.getProductos();
-        cmbCategoria.setItems(DataManager.getCategorias());
-
-        configurarFiltrosEntradaNumerica();
+        // Cargar Categorías desde PostgreSQL
+        try {
+            cmbCategoria.setItems(FXCollections.observableArrayList(categoriaDAO.listar()));
+        } catch (SQLException e) {
+            mensaje(Alert.AlertType.ERROR, "Error al cargar categorías: " + e.getMessage());
+        }
 
         colCodigo.setCellValueFactory(new PropertyValueFactory<>("codigo"));
         colNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
         colCategoria.setCellValueFactory(new PropertyValueFactory<>("categoria"));
         colPrecio.setCellValueFactory(new PropertyValueFactory<>("precioVenta"));
         colExistencia.setCellValueFactory(new PropertyValueFactory<>("existencia"));
+        colActivo.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().isActivo() ? "Activo" : "Inactivo"));
 
-        FilteredList<Producto> filtro = new FilteredList<>(productos, p -> true);
+        cargarDatos();
+
+        FilteredList<Producto> filtro = new FilteredList<>(productosObservable, p -> true);
         if (txtBuscar != null) {
             txtBuscar.textProperty().addListener((obs, oldV, texto) -> {
                 filtro.setPredicate(p -> {
@@ -69,21 +81,30 @@ public class ProductoContoller {
                 txtNombre.setText(p.getNombre());
                 txtPrecio.setText(p.getPrecioVenta().toString());
                 txtExistencia.setText(String.valueOf(p.getExistencia()));
-                cmbCategoria.setValue(p.getCategoria());
+                chkActivo.setSelected(p.isActivo());
+
+                // Seleccionar la categoría coincidente en el combo
+                for (Categoria c : cmbCategoria.getItems()) {
+                    if (c.getId().equals(p.getCategoria().getId())) {
+                        cmbCategoria.setValue(c);
+                        break;
+                    }
+                }
+
                 rutaImagenActual = p.getRutaImagen();
                 cargarImagenEnVista(rutaImagenActual);
             }
         });
+
+        chkActivo.setSelected(true);
     }
 
-    private void configurarFiltrosEntradaNumerica() {
-        UnaryOperator<TextFormatter.Change> filtroEnteros = change ->
-                change.getControlNewText().matches("\\d*") ? change : null;
-        txtExistencia.setTextFormatter(new TextFormatter<>(filtroEnteros));
-
-        UnaryOperator<TextFormatter.Change> filtroDecimales = change ->
-                change.getControlNewText().matches("\\d*(\\.\\d{0,2})?") ? change : null;
-        txtPrecio.setTextFormatter(new TextFormatter<>(filtroDecimales));
+    private void cargarDatos() {
+        try {
+            productosObservable.setAll(productoDAO.listar());
+        } catch (SQLException e) {
+            mensaje(Alert.AlertType.ERROR, "Error al cargar productos: " + e.getMessage());
+        }
     }
 
     private void cargarImagenEnVista(String ruta) {
@@ -101,7 +122,7 @@ public class ProductoContoller {
     @FXML
     private void seleccionarImagen() {
         FileChooser chooser = new FileChooser();
-        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Imágenes", "*.png", "*.jpg", "*.jpeg", "*.webp"));
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Imágenes", "*.png", "*.jpg", "*.jpeg"));
         File archivo = chooser.showOpenDialog(txtCodigo.getScene().getWindow());
         if (archivo != null) {
             rutaImagenActual = archivo.toURI().toString();
@@ -118,40 +139,48 @@ public class ProductoContoller {
             return;
         }
 
-        BigDecimal precio = new BigDecimal(txtPrecio.getText().trim());
-        int existencia = Integer.parseInt(txtExistencia.getText().trim());
+        try {
+            BigDecimal precio = new BigDecimal(txtPrecio.getText().trim());
+            int existencia = Integer.parseInt(txtExistencia.getText().trim());
 
-        if (precio.compareTo(BigDecimal.ZERO) <= 0) {
-            mensaje(Alert.AlertType.WARNING, "El precio debe ser mayor a 0.");
-            return;
-        }
-
-        Producto sel = tblProductos.getSelectionModel().getSelectedItem();
-        if (sel != null) {
-            sel.setNombre(txtNombre.getText().trim());
-            sel.setCategoria(cmbCategoria.getValue());
-            sel.setPrecioVenta(precio);
-            sel.setExistencia(existencia);
-            sel.setRutaImagen(rutaImagenActual);
-            tblProductos.refresh();
-            DataManager.guardarProductos();
-            mensaje(Alert.AlertType.INFORMATION, "Producto actualizado correctamente.");
-        } else {
-            String cod = txtCodigo.getText().trim().toUpperCase();
-            for (Producto p : productos) {
-                if (p.getCodigo().equalsIgnoreCase(cod)) {
-                    mensaje(Alert.AlertType.ERROR, "Ya existe un producto con el código: " + cod);
-                    return;
-                }
+            if (precio.compareTo(BigDecimal.ZERO) <= 0 || existencia < 0) {
+                mensaje(Alert.AlertType.WARNING, "Precio mayor a 0 y existencia no negativa.");
+                return;
             }
-            int nuevoId = productos.size() + 1;
-            productos.add(new Producto(nuevoId, cod, txtNombre.getText().trim(),
-                    cmbCategoria.getValue(), precio, existencia, rutaImagenActual));
-            DataManager.guardarProductos();
-            mensaje(Alert.AlertType.INFORMATION, "Producto registrado correctamente.");
-        }
 
-        limpiar();
+            Producto sel = tblProductos.getSelectionModel().getSelectedItem();
+            if (sel != null) {
+                sel.setNombre(txtNombre.getText().trim());
+                sel.setCategoria(cmbCategoria.getValue());
+                sel.setPrecioVenta(precio);
+                sel.setExistencia(existencia);
+                sel.setRutaImagen(rutaImagenActual);
+                sel.setActivo(chkActivo.isSelected());
+
+                productoDAO.actualizar(sel);
+                mensaje(Alert.AlertType.INFORMATION, "Producto actualizado en la base de datos.");
+            } else {
+                Producto nuevo = new Producto(
+                        txtCodigo.getText().trim().toUpperCase(),
+                        txtNombre.getText().trim(),
+                        cmbCategoria.getValue(),
+                        precio,
+                        existencia,
+                        rutaImagenActual,
+                        chkActivo.isSelected()
+                );
+                productoDAO.guardar(nuevo);
+                mensaje(Alert.AlertType.INFORMATION, "Producto guardado con éxito en PostgreSQL.");
+            }
+
+            cargarDatos();
+            limpiar();
+
+        } catch (NumberFormatException e) {
+            mensaje(Alert.AlertType.ERROR, "Precio o existencia no válidos.");
+        } catch (SQLException e) {
+            mensaje(Alert.AlertType.ERROR, "Error de base de datos: " + e.getMessage());
+        }
     }
 
     @FXML
@@ -162,12 +191,16 @@ public class ProductoContoller {
             return;
         }
 
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "¿Desea eliminar '" + sel.getNombre() + "' permanentemente?", ButtonType.OK, ButtonType.CANCEL);
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "¿Desea eliminar el producto?", ButtonType.OK, ButtonType.CANCEL);
         if (confirm.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
-            productos.remove(sel);
-            DataManager.guardarProductos();
-            limpiar();
-            mensaje(Alert.AlertType.INFORMATION, "Producto eliminado.");
+            try {
+                productoDAO.eliminar(sel.getId());
+                mensaje(Alert.AlertType.INFORMATION, "Producto eliminado.");
+                cargarDatos();
+                limpiar();
+            } catch (SQLException e) {
+                mensaje(Alert.AlertType.ERROR, "Error al eliminar: " + e.getMessage());
+            }
         }
     }
 
@@ -179,6 +212,7 @@ public class ProductoContoller {
         txtPrecio.clear();
         txtExistencia.clear();
         cmbCategoria.getSelectionModel().clearSelection();
+        chkActivo.setSelected(true);
         imgProducto.setImage(null);
         rutaImagenActual = null;
         tblProductos.getSelectionModel().clearSelection();

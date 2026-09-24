@@ -8,12 +8,15 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
-import ni.edu.uam.fact_app.model.*;
-import ni.edu.uam.fact_app.util.DataManager;
+import ni.edu.uam.fact_app.dao.ProductoDAO;
+import ni.edu.uam.fact_app.model.DetalleVenta;
+import ni.edu.uam.fact_app.model.Producto;
+import ni.edu.uam.fact_app.model.Usuario;
 import ni.edu.uam.fact_app.util.SesionUsuario;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.SQLException;
 
 public class VentaController {
 
@@ -35,8 +38,9 @@ public class VentaController {
     @FXML private Label lblIva;
     @FXML private Label lblTotal;
 
+    private final ProductoDAO productoDAO = new ProductoDAO();
     private final ObservableList<DetalleVenta> carrito = FXCollections.observableArrayList();
-    private ObservableList<Producto> listaDisponibles = FXCollections.observableArrayList();
+    private final ObservableList<Producto> listaDisponibles = FXCollections.observableArrayList();
     private FilteredList<Producto> filtroDisponibles;
     private static int correlativoFactura = 1001;
 
@@ -50,20 +54,21 @@ public class VentaController {
 
         recargarComboProductos();
 
-        // Búsqueda en caliente: al escribir en txtBuscarProducto, se filtra el ComboBox
         filtroDisponibles = new FilteredList<>(listaDisponibles, p -> true);
         cmbProducto.setItems(filtroDisponibles);
 
-        txtBuscarProducto.textProperty().addListener((obs, oldV, texto) -> {
-            filtroDisponibles.setPredicate(p -> {
-                if (texto == null || texto.isBlank()) return true;
-                String b = texto.toLowerCase();
-                return p.getNombre().toLowerCase().contains(b) || p.getCodigo().toLowerCase().contains(b);
+        if (txtBuscarProducto != null) {
+            txtBuscarProducto.textProperty().addListener((obs, oldV, texto) -> {
+                filtroDisponibles.setPredicate(p -> {
+                    if (texto == null || texto.isBlank()) return true;
+                    String b = texto.toLowerCase();
+                    return p.getNombre().toLowerCase().contains(b) || p.getCodigo().toLowerCase().contains(b);
+                });
+                if (!filtroDisponibles.isEmpty()) {
+                    cmbProducto.setValue(filtroDisponibles.get(0));
+                }
             });
-            if (!filtroDisponibles.isEmpty()) {
-                cmbProducto.setValue(filtroDisponibles.get(0));
-            }
-        });
+        }
 
         cmbProducto.getSelectionModel().selectedItemProperty().addListener((obs, oldV, prod) -> {
             if (prod != null) {
@@ -85,10 +90,14 @@ public class VentaController {
 
     private void recargarComboProductos() {
         listaDisponibles.clear();
-        for (Producto p : DataManager.getProductos()) {
-            if (p.getExistencia() > 0) {
-                listaDisponibles.add(p);
+        try {
+            for (Producto p : productoDAO.listar()) {
+                if (p.isActivo() && p.getExistencia() > 0) {
+                    listaDisponibles.add(p);
+                }
             }
+        } catch (SQLException e) {
+            mensaje(Alert.AlertType.ERROR, "Error al cargar productos desde PostgreSQL: " + e.getMessage());
         }
     }
 
@@ -142,7 +151,7 @@ public class VentaController {
         tblDetalle.refresh();
         calcularTotales();
         txtCantidad.setText("1");
-        txtBuscarProducto.clear();
+        if (txtBuscarProducto != null) txtBuscarProducto.clear();
         cmbProducto.getSelectionModel().clearSelection();
     }
 
@@ -177,16 +186,21 @@ public class VentaController {
             return;
         }
 
-        for (DetalleVenta d : carrito) {
-            Producto p = d.getProducto();
-            p.setExistencia(p.getExistencia() - d.getCantidad());
+        try {
+            // Descuenta las existencias directamente en la base de datos PostgreSQL
+            for (DetalleVenta d : carrito) {
+                Producto p = d.getProducto();
+                p.setExistencia(p.getExistencia() - d.getCantidad());
+                productoDAO.actualizar(p);
+            }
+
+            mensaje(Alert.AlertType.INFORMATION, "¡Factura " + lblNumeroFactura.getText() + " procesada con éxito!\nInventario descontado en PostgreSQL.");
+            correlativoFactura++;
+            ((Stage) txtCantidad.getScene().getWindow()).close();
+
+        } catch (SQLException e) {
+            mensaje(Alert.AlertType.ERROR, "Error al actualizar stock en la base de datos: " + e.getMessage());
         }
-
-        DataManager.guardarProductos();
-
-        mensaje(Alert.AlertType.INFORMATION, "¡Factura " + lblNumeroFactura.getText() + " procesada con éxito!\nInventario descontado.");
-        correlativoFactura++;
-        ((Stage) txtCantidad.getScene().getWindow()).close();
     }
 
     @FXML

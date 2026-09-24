@@ -1,6 +1,7 @@
 package ni.edu.uam.fact_app.controller;
 
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
@@ -9,7 +10,6 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import ni.edu.uam.fact_app.model.Cargo;
 import ni.edu.uam.fact_app.model.Empleado;
-import ni.edu.uam.fact_app.util.DataManager;
 
 import java.time.LocalDate;
 
@@ -27,18 +27,34 @@ public class EmpleadoController {
     @FXML private TableColumn<Empleado, String> colCargo;
     @FXML private TableColumn<Empleado, LocalDate> colFecha;
 
-    private ObservableList<Empleado> empleados;
+    private static final ObservableList<Empleado> empleados = FXCollections.observableArrayList();
+    private static int correlativoId = 1;
+    private static boolean inicializado = false;
+
+    public static ObservableList<Empleado> getEmpleados() {
+        if (!inicializado) {
+            ObservableList<Cargo> cargos = CargoController.getCargos();
+            Cargo admin = cargos.size() > 0 ? cargos.get(0) : new Cargo(1, "Administrador", "Admin");
+            Cargo cajero = cargos.size() > 1 ? cargos.get(1) : admin;
+
+            empleados.add(new Empleado(correlativoId++, "Carlos", "Perez", admin, LocalDate.of(2025, 1, 15)));
+            empleados.add(new Empleado(correlativoId++, "Maria", "Lopez", cajero, LocalDate.of(2025, 3, 1)));
+            inicializado = true;
+        }
+        return empleados;
+    }
 
     @FXML
     private void initialize() {
-        empleados = DataManager.getEmpleados();
-        cmbCargo.setItems(DataManager.getCargos());
+        cmbCargo.setItems(CargoController.getCargos());
         dpFechaContratacion.setValue(LocalDate.now());
 
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colNombreCompleto.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getNombres() + " " + e.getValue().getApellidos()));
         colCargo.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getCargo() != null ? e.getValue().getCargo().getNombre() : ""));
         colFecha.setCellValueFactory(new PropertyValueFactory<>("fechaContratacion"));
+
+        getEmpleados();
 
         FilteredList<Empleado> filtro = new FilteredList<>(empleados, p -> true);
         if (txtBuscar != null) {
@@ -77,13 +93,10 @@ public class EmpleadoController {
             sel.setCargo(cmbCargo.getValue());
             sel.setFechaContratacion(dpFechaContratacion.getValue());
             tblEmpleados.refresh();
-            DataManager.guardarEmpleados();
             mensaje(Alert.AlertType.INFORMATION, "Empleado actualizado.");
         } else {
-            int nuevoId = empleados.size() + 1;
-            empleados.add(new Empleado(nuevoId, txtNombres.getText().trim(), txtApellidos.getText().trim(),
+            empleados.add(new Empleado(correlativoId++, txtNombres.getText().trim(), txtApellidos.getText().trim(),
                     cmbCargo.getValue(), dpFechaContratacion.getValue()));
-            DataManager.guardarEmpleados();
             mensaje(Alert.AlertType.INFORMATION, "Empleado registrado.");
         }
         limpiar();
@@ -100,7 +113,6 @@ public class EmpleadoController {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "¿Desea eliminar al empleado seleccionado?", ButtonType.OK, ButtonType.CANCEL);
         if (confirm.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
             empleados.remove(sel);
-            DataManager.guardarEmpleados();
             limpiar();
             mensaje(Alert.AlertType.INFORMATION, "Empleado eliminado.");
         }

@@ -17,6 +17,17 @@ public class Producto {
     private BigDecimal precioVenta;
     private int existencia;
     private String rutaImagen;
+    private boolean activo;
+
+    public Producto(String codigo, String nombre, Categoria categoria, BigDecimal precioVenta, int existencia, String rutaImagen, boolean activo) {
+        this.codigo = codigo;
+        this.nombre = nombre;
+        this.categoria = categoria;
+        this.precioVenta = precioVenta;
+        this.existencia = existencia;
+        this.rutaImagen = rutaImagen;
+        this.activo = activo;
+    }
 
     @Override
     public String toString() {

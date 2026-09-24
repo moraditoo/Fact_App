@@ -1,33 +1,41 @@
 package ni.edu.uam.fact_app.controller;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
+import ni.edu.uam.fact_app.dao.CategoriaDAO;
 import ni.edu.uam.fact_app.model.Categoria;
-import ni.edu.uam.fact_app.util.DataManager;
+
+import java.sql.SQLException;
 
 public class CategoriaController {
 
     @FXML private TextField txtNombre;
+    @FXML private CheckBox chkActiva;
     @FXML private TextField txtBuscar;
 
     @FXML private TableView<Categoria> tblCategorias;
     @FXML private TableColumn<Categoria, Integer> colId;
     @FXML private TableColumn<Categoria, String> colNombre;
+    @FXML private TableColumn<Categoria, String> colActiva;
 
-    private ObservableList<Categoria> categorias;
+    private final CategoriaDAO categoriaDAO = new CategoriaDAO();
+    private final ObservableList<Categoria> categoriasObservable = FXCollections.observableArrayList();
 
     @FXML
     private void initialize() {
-        categorias = DataManager.getCategorias();
-
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
+        colActiva.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().isActiva() ? "Activa" : "Inactiva"));
 
-        FilteredList<Categoria> filtro = new FilteredList<>(categorias, c -> true);
+        cargarDatos();
+
+        FilteredList<Categoria> filtro = new FilteredList<>(categoriasObservable, c -> true);
         if (txtBuscar != null) {
             txtBuscar.textProperty().addListener((obs, oldV, texto) -> {
                 filtro.setPredicate(c -> {
@@ -41,8 +49,19 @@ public class CategoriaController {
         tblCategorias.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, sel) -> {
             if (sel != null) {
                 txtNombre.setText(sel.getNombre());
+                chkActiva.setSelected(sel.isActiva());
             }
         });
+
+        chkActiva.setSelected(true);
+    }
+
+    private void cargarDatos() {
+        try {
+            categoriasObservable.setAll(categoriaDAO.listar());
+        } catch (SQLException e) {
+            mensaje(Alert.AlertType.ERROR, "Error al cargar categorías: " + e.getMessage());
+        }
     }
 
     @FXML
@@ -53,19 +72,22 @@ public class CategoriaController {
         }
 
         Categoria sel = tblCategorias.getSelectionModel().getSelectedItem();
-        if (sel != null) {
-            sel.setNombre(txtNombre.getText().trim());
-            tblCategorias.refresh();
-            DataManager.guardarCategorias();
-            mensaje(Alert.AlertType.INFORMATION, "Categoría modificada correctamente.");
-        } else {
-            int nuevoId = categorias.size() + 1;
-            categorias.add(new Categoria(nuevoId, txtNombre.getText().trim()));
-            DataManager.guardarCategorias();
-            mensaje(Alert.AlertType.INFORMATION, "Categoría agregada correctamente.");
+        try {
+            if (sel != null) {
+                sel.setNombre(txtNombre.getText().trim());
+                sel.setActiva(chkActiva.isSelected());
+                categoriaDAO.actualizar(sel);
+                mensaje(Alert.AlertType.INFORMATION, "Categoría actualizada.");
+            } else {
+                Categoria nueva = new Categoria(txtNombre.getText().trim(), chkActiva.isSelected());
+                categoriaDAO.guardar(nueva);
+                mensaje(Alert.AlertType.INFORMATION, "Categoría guardada en la base de datos.");
+            }
+            cargarDatos();
+            limpiar();
+        } catch (SQLException e) {
+            mensaje(Alert.AlertType.ERROR, "Error en base de datos: " + e.getMessage());
         }
-
-        limpiar();
     }
 
     @FXML
@@ -78,16 +100,21 @@ public class CategoriaController {
 
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "¿Desea eliminar la categoría seleccionada?", ButtonType.OK, ButtonType.CANCEL);
         if (confirm.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
-            categorias.remove(sel);
-            DataManager.guardarCategorias();
-            limpiar();
-            mensaje(Alert.AlertType.INFORMATION, "Categoría eliminada.");
+            try {
+                categoriaDAO.eliminar(sel.getId());
+                mensaje(Alert.AlertType.INFORMATION, "Categoría eliminada.");
+                cargarDatos();
+                limpiar();
+            } catch (SQLException e) {
+                mensaje(Alert.AlertType.ERROR, "No se puede eliminar (posiblemente tenga productos asociados).");
+            }
         }
     }
 
     @FXML
     private void limpiar() {
         txtNombre.clear();
+        chkActiva.setSelected(true);
         tblCategorias.getSelectionModel().clearSelection();
     }
 
