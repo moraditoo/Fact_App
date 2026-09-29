@@ -42,7 +42,26 @@ public class CategoriaDAO {
         return lista;
     }
 
-    public Categoria buscar(int id) throws SQLException {
+    public List<Categoria> buscarPorNombre(String texto) throws SQLException {
+        List<Categoria> lista = new ArrayList<>();
+        String sql = "SELECT id, nombre, activa FROM categoria WHERE LOWER(nombre) LIKE ? ORDER BY id ASC";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, "%" + texto.trim().toLowerCase() + "%");
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(new Categoria(
+                            rs.getInt("id"),
+                            rs.getString("nombre"),
+                            rs.getBoolean("activa")
+                    ));
+                }
+            }
+        }
+        return lista;
+    }
+
+    public Categoria buscarPorId(int id) throws SQLException {
         String sql = "SELECT id, nombre, activa FROM categoria WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
