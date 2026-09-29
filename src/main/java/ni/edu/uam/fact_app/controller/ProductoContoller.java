@@ -6,7 +6,6 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -48,7 +47,6 @@ public class ProductoContoller {
     private final CategoriaDAO categoriaDAO = new CategoriaDAO();
     private final ObservableList<Producto> productosObservable = FXCollections.observableArrayList();
 
-    // Variable fija para retener el ID de la base de datos durante la edición
     private Integer idSeleccionadoParaEditar = null;
     private String rutaImagenActual;
     private Timeline autoRefrescoTimeline;
@@ -64,32 +62,24 @@ public class ProductoContoller {
         colExistencia.setCellValueFactory(new PropertyValueFactory<>("existencia"));
         colActivo.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().isActivo() ? "Activo" : "Inactivo"));
 
-        cargarDatos();
+        tblProductos.setItems(productosObservable);
+        ejecutarConsultaBusqueda();
 
-        FilteredList<Producto> filtro = new FilteredList<>(productosObservable, p -> true);
+        // Búsqueda directa en base de datos mediante WHERE parametrizado
         if (txtBuscar != null) {
-            txtBuscar.textProperty().addListener((obs, oldV, texto) -> {
-                filtro.setPredicate(p -> {
-                    if (texto == null || texto.isBlank()) return true;
-                    String busq = texto.toLowerCase();
-                    return p.getNombre().toLowerCase().contains(busq) || p.getCodigo().toLowerCase().contains(busq);
-                });
-            });
+            txtBuscar.textProperty().addListener((obs, oldV, texto) -> ejecutarConsultaBusqueda());
         }
-        tblProductos.setItems(filtro);
 
-        // Al seleccionar de la tabla, se entra en modo edición
         tblProductos.getSelectionModel().selectedItemProperty().addListener((obs, oldV, p) -> {
             if (p != null) {
-                idSeleccionadoParaEditar = p.getId(); // Retener ID de PostgreSQL
+                idSeleccionadoParaEditar = p.getId();
                 txtCodigo.setText(p.getCodigo());
-                txtCodigo.setDisable(true); // El código no se edita (es único)
+                txtCodigo.setDisable(true);
                 txtNombre.setText(p.getNombre());
                 txtPrecio.setText(p.getPrecioVenta() != null ? p.getPrecioVenta().toString() : "0.00");
                 txtExistencia.setText(String.valueOf(p.getExistencia()));
                 chkActivo.setSelected(p.isActivo());
 
-                // Emparejar categoría exacta
                 if (p.getCategoria() != null) {
                     for (Categoria c : cmbCategoria.getItems()) {
                         if (c.getId().equals(p.getCategoria().getId())) {
@@ -108,19 +98,26 @@ public class ProductoContoller {
         iniciarAutoRefresco();
     }
 
+    private void ejecutarConsultaBusqueda() {
+        try {
+            String criterio = (txtBuscar != null) ? txtBuscar.getText() : "";
+            List<Producto> resultado = productoDAO.buscarPorCriterio(criterio, null);
+            productosObservable.setAll(resultado);
+        } catch (SQLException e) {
+            mensaje(Alert.AlertType.ERROR, "Error al filtrar en la base de datos: " + e.getMessage());
+        }
+    }
+
     private void iniciarAutoRefresco() {
         autoRefrescoTimeline = new Timeline(new KeyFrame(Duration.seconds(2.5), event -> {
-            // Si el usuario está editando un producto, no sobrescribir la pantalla
-            if (idSeleccionadoParaEditar != null) {
-                return;
-            }
+            if (idSeleccionadoParaEditar != null) return;
+            if (txtBuscar != null && !txtBuscar.getText().isBlank()) return;
 
             Thread hilo = new Thread(() -> {
                 try {
                     List<Producto> nuevos = productoDAO.listar();
                     Platform.runLater(() -> {
-                        // Solo refrescar si no hay edición activa
-                        if (idSeleccionadoParaEditar == null) {
+                        if (idSeleccionadoParaEditar == null && (txtBuscar == null || txtBuscar.getText().isBlank())) {
                             productosObservable.setAll(nuevos);
                         }
                     });
@@ -139,14 +136,6 @@ public class ProductoContoller {
             cmbCategoria.setItems(FXCollections.observableArrayList(categoriaDAO.listar()));
         } catch (SQLException e) {
             mensaje(Alert.AlertType.ERROR, "Error al cargar categorías: " + e.getMessage());
-        }
-    }
-
-    private void cargarDatos() {
-        try {
-            productosObservable.setAll(productoDAO.listar());
-        } catch (SQLException e) {
-            mensaje(Alert.AlertType.ERROR, "Error al cargar productos: " + e.getMessage());
         }
     }
 
@@ -192,7 +181,6 @@ public class ProductoContoller {
             }
 
             if (idSeleccionadoParaEditar != null) {
-                // ACTUALIZACIÓN DIRECTA EN POSTGRESQL USANDO EL ID RETENIDO
                 Producto productoAEditar = new Producto(
                         idSeleccionadoParaEditar,
                         txtCodigo.getText().trim(),
@@ -203,11 +191,9 @@ public class ProductoContoller {
                         rutaImagenActual,
                         chkActivo.isSelected()
                 );
-
                 productoDAO.actualizar(productoAEditar);
-                mensaje(Alert.AlertType.INFORMATION, "Producto actualizado correctamente en PostgreSQL.");
+                mensaje(Alert.AlertType.INFORMATION, "Producto actualizado en PostgreSQL.");
             } else {
-                // INSERCIÓN NUEVA EN POSTGRESQL
                 Producto nuevo = new Producto(
                         txtCodigo.getText().trim().toUpperCase(),
                         txtNombre.getText().trim(),
@@ -217,13 +203,12 @@ public class ProductoContoller {
                         rutaImagenActual,
                         chkActivo.isSelected()
                 );
-
                 productoDAO.guardar(nuevo);
-                mensaje(Alert.AlertType.INFORMATION, "Producto registrado correctamente en PostgreSQL.");
+                mensaje(Alert.AlertType.INFORMATION, "Producto insertado en PostgreSQL.");
             }
 
             limpiar();
-            cargarDatos(); // Recargar inmediatamente la tabla desde PostgreSQL
+            ejecutarConsultaBusqueda();
 
         } catch (NumberFormatException e) {
             mensaje(Alert.AlertType.ERROR, "Precio o existencia no válidos.");
@@ -239,13 +224,13 @@ public class ProductoContoller {
             return;
         }
 
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "¿Desea eliminar el producto permanentemente de la base de datos?", ButtonType.OK, ButtonType.CANCEL);
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "¿Desea eliminar el producto?", ButtonType.OK, ButtonType.CANCEL);
         if (confirm.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
             try {
                 productoDAO.eliminar(idSeleccionadoParaEditar);
                 mensaje(Alert.AlertType.INFORMATION, "Producto eliminado.");
                 limpiar();
-                cargarDatos();
+                ejecutarConsultaBusqueda();
             } catch (SQLException e) {
                 mensaje(Alert.AlertType.ERROR, "Error al eliminar: " + e.getMessage());
             }
@@ -254,7 +239,7 @@ public class ProductoContoller {
 
     @FXML
     private void limpiar() {
-        idSeleccionadoParaEditar = null; // Reiniciar estado de edición
+        idSeleccionadoParaEditar = null;
         txtCodigo.setDisable(false);
         txtCodigo.clear();
         txtNombre.clear();
