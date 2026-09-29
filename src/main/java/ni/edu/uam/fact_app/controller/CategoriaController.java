@@ -6,7 +6,6 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -39,18 +38,12 @@ public class CategoriaController {
         colNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
         colActiva.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().isActiva() ? "Activa" : "Inactiva"));
 
-        cargarDatos();
+        tblCategorias.setItems(categoriasObservable);
+        ejecutarConsultaBusqueda();
 
-        FilteredList<Categoria> filtro = new FilteredList<>(categoriasObservable, c -> true);
         if (txtBuscar != null) {
-            txtBuscar.textProperty().addListener((obs, oldV, texto) -> {
-                filtro.setPredicate(c -> {
-                    if (texto == null || texto.isBlank()) return true;
-                    return c.getNombre().toLowerCase().contains(texto.toLowerCase());
-                });
-            });
+            txtBuscar.textProperty().addListener((obs, oldV, texto) -> ejecutarConsultaBusqueda());
         }
-        tblCategorias.setItems(filtro);
 
         tblCategorias.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, sel) -> {
             if (sel != null) {
@@ -60,28 +53,33 @@ public class CategoriaController {
         });
 
         chkActiva.setSelected(true);
-
         iniciarAutoRefresco();
+    }
+
+    private void ejecutarConsultaBusqueda() {
+        try {
+            if (txtBuscar == null || txtBuscar.getText().isBlank()) {
+                categoriasObservable.setAll(categoriaDAO.listar());
+            } else {
+                categoriasObservable.setAll(categoriaDAO.buscarPorNombre(txtBuscar.getText()));
+            }
+        } catch (SQLException e) {
+            mensaje(Alert.AlertType.ERROR, "Error al consultar categorías: " + e.getMessage());
+        }
     }
 
     private void iniciarAutoRefresco() {
         autoRefrescoTimeline = new Timeline(new KeyFrame(Duration.seconds(2.5), event -> {
+            if (tblCategorias.getSelectionModel().getSelectedItem() != null) return;
+            if (txtBuscar != null && !txtBuscar.getText().isBlank()) return;
+
             Thread hilo = new Thread(() -> {
                 try {
                     List<Categoria> nuevas = categoriaDAO.listar();
                     Platform.runLater(() -> {
-                        Categoria seleccionada = tblCategorias.getSelectionModel().getSelectedItem();
-                        Integer idSeleccionado = seleccionada != null ? seleccionada.getId() : null;
-
-                        categoriasObservable.setAll(nuevas);
-
-                        if (idSeleccionado != null) {
-                            for (Categoria c : tblCategorias.getItems()) {
-                                if (c.getId().equals(idSeleccionado)) {
-                                    tblCategorias.getSelectionModel().select(c);
-                                    break;
-                                }
-                            }
+                        if (tblCategorias.getSelectionModel().getSelectedItem() == null
+                                && (txtBuscar == null || txtBuscar.getText().isBlank())) {
+                            categoriasObservable.setAll(nuevas);
                         }
                     });
                 } catch (SQLException ignored) { }
@@ -92,14 +90,6 @@ public class CategoriaController {
 
         autoRefrescoTimeline.setCycleCount(Timeline.INDEFINITE);
         autoRefrescoTimeline.play();
-    }
-
-    private void cargarDatos() {
-        try {
-            categoriasObservable.setAll(categoriaDAO.listar());
-        } catch (SQLException e) {
-            mensaje(Alert.AlertType.ERROR, "Error al cargar categorías: " + e.getMessage());
-        }
     }
 
     @FXML
@@ -119,10 +109,10 @@ public class CategoriaController {
             } else {
                 Categoria nueva = new Categoria(txtNombre.getText().trim(), chkActiva.isSelected());
                 categoriaDAO.guardar(nueva);
-                mensaje(Alert.AlertType.INFORMATION, "Categoría guardada en la base de datos.");
+                mensaje(Alert.AlertType.INFORMATION, "Categoría guardada en PostgreSQL.");
             }
-            cargarDatos();
             limpiar();
+            ejecutarConsultaBusqueda();
         } catch (SQLException e) {
             mensaje(Alert.AlertType.ERROR, "Error en base de datos: " + e.getMessage());
         }
@@ -141,8 +131,8 @@ public class CategoriaController {
             try {
                 categoriaDAO.eliminar(sel.getId());
                 mensaje(Alert.AlertType.INFORMATION, "Categoría eliminada.");
-                cargarDatos();
                 limpiar();
+                ejecutarConsultaBusqueda();
             } catch (SQLException e) {
                 mensaje(Alert.AlertType.ERROR, "No se puede eliminar (posiblemente tenga productos asociados).");
             }
