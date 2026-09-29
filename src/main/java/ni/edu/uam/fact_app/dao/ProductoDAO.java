@@ -47,22 +47,68 @@ public class ProductoDAO {
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                Categoria cat = new Categoria(
-                        rs.getInt("categoria_id"),
-                        rs.getString("categoria_nombre"),
-                        rs.getBoolean("categoria_activa")
-                );
+                lista.add(mapearProducto(rs));
+            }
+        }
+        return lista;
+    }
 
-                lista.add(new Producto(
-                        rs.getInt("id"),
-                        rs.getString("codigo"),
-                        rs.getString("nombre"),
-                        cat,
-                        rs.getBigDecimal("precio_venta"),
-                        rs.getInt("existencia"),
-                        rs.getString("ruta_imagen"),
-                        rs.getBoolean("activo")
-                ));
+    public Producto buscarPorId(int id) throws SQLException {
+        String sql = """
+            SELECT p.*, c.nombre AS categoria_nombre, c.activa AS categoria_activa
+            FROM producto p
+            INNER JOIN categoria c ON p.categoria_id = c.id
+            WHERE p.id = ?
+            """;
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapearProducto(rs);
+                }
+            }
+        }
+        return null;
+    }
+
+    public List<Producto> buscarPorCriterio(String texto, Integer categoriaId) throws SQLException {
+        List<Producto> lista = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
+            SELECT p.*, c.nombre AS categoria_nombre, c.activa AS categoria_activa
+            FROM producto p
+            INNER JOIN categoria c ON p.categoria_id = c.id
+            WHERE 1=1
+            """);
+
+        boolean tieneTexto = texto != null && !texto.isBlank();
+        boolean tieneCategoria = categoriaId != null && categoriaId > 0;
+
+        if (tieneTexto) {
+            sql.append(" AND (LOWER(p.codigo) LIKE ? OR LOWER(p.nombre) LIKE ?)");
+        }
+        if (tieneCategoria) {
+            sql.append(" AND p.categoria_id = ?");
+        }
+
+        sql.append(" ORDER BY p.id ASC");
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+            if (tieneTexto) {
+                String patron = "%" + texto.trim().toLowerCase() + "%";
+                ps.setString(paramIndex++, patron);
+                ps.setString(paramIndex++, patron);
+            }
+            if (tieneCategoria) {
+                ps.setInt(paramIndex, categoriaId);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapearProducto(rs));
+                }
             }
         }
         return lista;
@@ -70,7 +116,7 @@ public class ProductoDAO {
 
     public void actualizar(Producto producto) throws SQLException {
         if (producto.getId() == null) {
-            throw new SQLException("No se puede actualizar un producto sin ID.");
+            throw new SQLException("El producto no posee identificador para actualizar.");
         }
 
         String sql = """
@@ -88,9 +134,9 @@ public class ProductoDAO {
             ps.setBoolean(6, producto.isActivo());
             ps.setInt(7, producto.getId());
 
-            int filasAfectadas = ps.executeUpdate();
-            if (filasAfectadas == 0) {
-                throw new SQLException("No se encontró el producto con ID " + producto.getId() + " en la base de datos.");
+            int filas = ps.executeUpdate();
+            if (filas == 0) {
+                throw new SQLException("No se actualizó el registro con ID " + producto.getId());
             }
         }
     }
@@ -102,5 +148,24 @@ public class ProductoDAO {
             ps.setInt(1, id);
             ps.executeUpdate();
         }
+    }
+
+    private Producto mapearProducto(ResultSet rs) throws SQLException {
+        Categoria cat = new Categoria(
+                rs.getInt("categoria_id"),
+                rs.getString("categoria_nombre"),
+                rs.getBoolean("categoria_activa")
+        );
+
+        return new Producto(
+                rs.getInt("id"),
+                rs.getString("codigo"),
+                rs.getString("nombre"),
+                cat,
+                rs.getBigDecimal("precio_venta"),
+                rs.getInt("existencia"),
+                rs.getString("ruta_imagen"),
+                rs.getBoolean("activo")
+        );
     }
 }
