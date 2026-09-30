@@ -7,12 +7,16 @@ import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import ni.edu.uam.fact_app.dao.CategoriaDAO;
 import ni.edu.uam.fact_app.dao.ProductoDAO;
 import ni.edu.uam.fact_app.model.Categoria;
 import ni.edu.uam.fact_app.model.Producto;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 
@@ -24,6 +28,7 @@ public class ProductoContoller {
     @FXML private TextField txtPrecio;
     @FXML private TextField txtExistencia;
     @FXML private CheckBox chkActivo;
+    @FXML private ImageView imgProducto;
 
     @FXML private Button btnGuardar;
     @FXML private Button btnActualizar;
@@ -44,14 +49,13 @@ public class ProductoContoller {
     private final ProductoDAO productoDAO = new ProductoDAO();
     private final CategoriaDAO categoriaDAO = new CategoriaDAO();
 
-    // Colección observable principal (Punto 7)
     private final ObservableList<Producto> productos = FXCollections.observableArrayList();
     private FilteredList<Producto> productosFiltrados;
     private Producto productoSeleccionado = null;
+    private String rutaImagenActual = null;
 
     @FXML
     private void initialize() {
-        // 1. Configuración de columnas (Punto 5)
         colCodigo.setCellValueFactory(new PropertyValueFactory<>("codigo"));
         colNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
         colCategoria.setCellValueFactory(new PropertyValueFactory<>("categoria"));
@@ -59,28 +63,22 @@ public class ProductoContoller {
         colExistencia.setCellValueFactory(new PropertyValueFactory<>("existencia"));
         colActivo.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().isActivo() ? "Sí" : "No"));
 
-        // 2. Estructura ObservableList -> FilteredList -> TableView (Punto 13)
         productosFiltrados = new FilteredList<>(productos, p -> true);
         tblProductos.setItems(productosFiltrados);
 
-        // 3. Inicializar combos de categorías y filtros
         cargarCategorias();
         inicializarFiltrosAdicionales();
-
-        // 4. Cargar datos iniciales
         cargarDatos();
 
-        // 5. Escuchadores para el filtrado reactivo (Puntos 12, 13 y 14)
         txtBuscar.textProperty().addListener((obs, oldVal, newVal) -> aplicarFiltros());
         cmbFiltroCategoria.valueProperty().addListener((obs, oldVal, newVal) -> aplicarFiltros());
         cmbFiltroEstado.valueProperty().addListener((obs, oldVal, newVal) -> aplicarFiltros());
 
-        // 6. Selección de fila para cargar al formulario (Punto 9)
         tblProductos.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, sel) -> {
             productoSeleccionado = sel;
             if (sel != null) {
                 txtCodigo.setText(sel.getCodigo());
-                txtCodigo.setDisable(true); // El código no debe duplicarse ni alterarse en update
+                txtCodigo.setDisable(true);
                 txtNombre.setText(sel.getNombre());
                 txtPrecio.setText(sel.getPrecioVenta() != null ? sel.getPrecioVenta().toString() : "");
                 txtExistencia.setText(String.valueOf(sel.getExistencia()));
@@ -95,6 +93,9 @@ public class ProductoContoller {
                     }
                 }
 
+                rutaImagenActual = sel.getRutaImagen();
+                cargarImagenEnVista(rutaImagenActual);
+
                 btnGuardar.setDisable(true);
                 btnActualizar.setDisable(false);
                 btnEliminar.setDisable(false);
@@ -107,7 +108,6 @@ public class ProductoContoller {
             ObservableList<Categoria> cats = FXCollections.observableArrayList(categoriaDAO.listar());
             cmbCategoria.setItems(cats);
 
-            // Poblar filtro de categorías con opción 'Todas'
             ObservableList<String> nombresCats = FXCollections.observableArrayList();
             nombresCats.add("Todas las categorías");
             for (Categoria c : cats) {
@@ -133,24 +133,18 @@ public class ProductoContoller {
         }
     }
 
-    /**
-     * Aplica simultáneamente búsqueda por texto, categoría y estado (Punto 12, 13 y 14)
-     */
     private void aplicarFiltros() {
         productosFiltrados.setPredicate(p -> {
-            // Filtro por texto (código o nombre insensible a mayúsculas/minúsculas)
             String busqueda = txtBuscar.getText() != null ? txtBuscar.getText().trim().toLowerCase() : "";
             boolean coincideTexto = busqueda.isBlank()
                     || p.getCodigo().toLowerCase().contains(busqueda)
                     || p.getNombre().toLowerCase().contains(busqueda);
 
-            // Filtro por categoría
             String catFiltro = cmbFiltroCategoria.getValue();
             boolean coincideCategoria = catFiltro == null
                     || catFiltro.equals("Todas las categorías")
                     || (p.getCategoria() != null && p.getCategoria().getNombre().equalsIgnoreCase(catFiltro));
 
-            // Filtro por estado activo/inactivo
             String estadoFiltro = cmbFiltroEstado.getValue();
             boolean coincideEstado = estadoFiltro == null
                     || estadoFiltro.equals("Todos los estados")
@@ -161,6 +155,29 @@ public class ProductoContoller {
         });
     }
 
+    private void cargarImagenEnVista(String ruta) {
+        if (ruta != null && !ruta.isBlank()) {
+            try {
+                imgProducto.setImage(new Image(ruta, true));
+            } catch (Exception e) {
+                imgProducto.setImage(null);
+            }
+        } else {
+            imgProducto.setImage(null);
+        }
+    }
+
+    @FXML
+    private void seleccionarImagen() {
+        FileChooser chooser = new FileChooser();
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Imágenes", "*.png", "*.jpg", "*.jpeg", "*.webp"));
+        File archivo = chooser.showOpenDialog(txtCodigo.getScene().getWindow());
+        if (archivo != null) {
+            rutaImagenActual = archivo.toURI().toString();
+            cargarImagenEnVista(rutaImagenActual);
+        }
+    }
+
     @FXML
     private void restablecerFiltros() {
         txtBuscar.clear();
@@ -169,16 +186,12 @@ public class ProductoContoller {
         aplicarFiltros();
     }
 
-    /**
-     * CREATE — Crear un nuevo producto (Puntos 4, 8 y 15)
-     */
     @FXML
     private void guardar() {
         if (!validarFormulario()) return;
 
         String cod = txtCodigo.getText().trim().toUpperCase();
 
-        // Validación de código duplicado
         for (Producto p : productos) {
             if (p.getCodigo().equalsIgnoreCase(cod)) {
                 mensaje(Alert.AlertType.WARNING, "No se permiten códigos duplicados. El código ya existe.");
@@ -197,6 +210,7 @@ public class ProductoContoller {
                     cmbCategoria.getValue(),
                     precio,
                     existencia,
+                    rutaImagenActual,
                     chkActivo.isSelected()
             );
 
@@ -210,9 +224,6 @@ public class ProductoContoller {
         }
     }
 
-    /**
-     * UPDATE — Actualizar producto existente seleccionado (Puntos 4, 10 y 15)
-     */
     @FXML
     private void actualizar() {
         if (productoSeleccionado == null) {
@@ -230,6 +241,7 @@ public class ProductoContoller {
             productoSeleccionado.setCategoria(cmbCategoria.getValue());
             productoSeleccionado.setPrecioVenta(precio);
             productoSeleccionado.setExistencia(existencia);
+            productoSeleccionado.setRutaImagen(rutaImagenActual);
             productoSeleccionado.setActivo(chkActivo.isSelected());
 
             productoDAO.actualizar(productoSeleccionado);
@@ -242,9 +254,6 @@ public class ProductoContoller {
         }
     }
 
-    /**
-     * DELETE — Eliminar producto con confirmación (Puntos 4 y 11)
-     */
     @FXML
     private void eliminar() {
         if (productoSeleccionado == null) {
@@ -265,9 +274,6 @@ public class ProductoContoller {
         }
     }
 
-    /**
-     * Validaciones solicitadas (Punto 15)
-     */
     private boolean validarFormulario() {
         if (txtCodigo.getText().isBlank()) {
             mensaje(Alert.AlertType.WARNING, "El código es obligatorio.");
@@ -318,6 +324,8 @@ public class ProductoContoller {
     @FXML
     private void limpiar() {
         productoSeleccionado = null;
+        rutaImagenActual = null;
+        imgProducto.setImage(null);
         txtCodigo.setDisable(false);
         txtCodigo.clear();
         txtNombre.clear();

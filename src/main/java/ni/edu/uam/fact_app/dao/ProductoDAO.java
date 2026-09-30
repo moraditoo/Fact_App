@@ -12,8 +12,8 @@ public class ProductoDAO {
 
     public void guardar(Producto producto) throws SQLException {
         String sql = """
-            INSERT INTO producto (codigo, nombre, categoria_id, precio_venta, existencia, activo)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO producto (codigo, nombre, categoria_id, precio_venta, existencia, ruta_imagen, activo)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """;
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -22,7 +22,8 @@ public class ProductoDAO {
             ps.setInt(3, producto.getCategoria().getId());
             ps.setBigDecimal(4, producto.getPrecioVenta());
             ps.setInt(5, producto.getExistencia());
-            ps.setBoolean(6, producto.isActivo());
+            ps.setString(6, producto.getRutaImagen());
+            ps.setBoolean(7, producto.isActivo());
             ps.executeUpdate();
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -36,7 +37,7 @@ public class ProductoDAO {
     public List<Producto> listar() throws SQLException {
         List<Producto> lista = new ArrayList<>();
         String sql = """
-            SELECT p.id, p.codigo, p.nombre, p.categoria_id, p.precio_venta, p.existencia, p.activo,
+            SELECT p.id, p.codigo, p.nombre, p.categoria_id, p.precio_venta, p.existencia, p.ruta_imagen, p.activo,
                    c.nombre AS categoria_nombre, c.activa AS categoria_activa
             FROM producto p
             INNER JOIN categoria c ON p.categoria_id = c.id
@@ -59,6 +60,7 @@ public class ProductoDAO {
                         cat,
                         rs.getBigDecimal("precio_venta"),
                         rs.getInt("existencia"),
+                        rs.getString("ruta_imagen"),
                         rs.getBoolean("activo")
                 ));
             }
@@ -69,7 +71,7 @@ public class ProductoDAO {
     public void actualizar(Producto producto) throws SQLException {
         String sql = """
             UPDATE producto
-            SET nombre = ?, categoria_id = ?, precio_venta = ?, existencia = ?, activo = ?
+            SET nombre = ?, categoria_id = ?, precio_venta = ?, existencia = ?, ruta_imagen = ?, activo = ?
             WHERE id = ?
             """;
         try (Connection conn = DatabaseConnection.getConnection();
@@ -78,8 +80,9 @@ public class ProductoDAO {
             ps.setInt(2, producto.getCategoria().getId());
             ps.setBigDecimal(3, producto.getPrecioVenta());
             ps.setInt(4, producto.getExistencia());
-            ps.setBoolean(5, producto.isActivo());
-            ps.setInt(6, producto.getId());
+            ps.setString(5, producto.getRutaImagen());
+            ps.setBoolean(6, producto.isActivo());
+            ps.setInt(7, producto.getId());
             ps.executeUpdate();
         }
     }
