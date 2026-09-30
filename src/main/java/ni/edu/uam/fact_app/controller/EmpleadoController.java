@@ -37,8 +37,8 @@ public class EmpleadoController {
             Cargo admin = cargos.size() > 0 ? cargos.get(0) : new Cargo(1, "Administrador", "Admin");
             Cargo cajero = cargos.size() > 1 ? cargos.get(1) : admin;
 
-            empleados.add(new Empleado(correlativoId++, "Carlos", "Perez", admin, LocalDate.of(2025, 1, 15)));
-            empleados.add(new Empleado(correlativoId++, "Maria", "Lopez", cajero, LocalDate.of(2025, 3, 1)));
+            empleados.add(new Empleado(correlativoId++, "Dylan", "Mora", admin, LocalDate.of(2025, 1, 15)));
+            empleados.add(new Empleado(correlativoId++, "Dylan", "perooo Cajero", cajero, LocalDate.of(2025, 3, 1)));
             inicializado = true;
         }
         return empleados;
