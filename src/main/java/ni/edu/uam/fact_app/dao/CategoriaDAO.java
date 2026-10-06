@@ -61,24 +61,6 @@ public class CategoriaDAO {
         return lista;
     }
 
-    public Categoria buscarPorId(int id) throws SQLException {
-        String sql = "SELECT id, nombre, activa FROM categoria WHERE id = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return new Categoria(
-                            rs.getInt("id"),
-                            rs.getString("nombre"),
-                            rs.getBoolean("activa")
-                    );
-                }
-            }
-        }
-        return null;
-    }
-
     public void actualizar(Categoria categoria) throws SQLException {
         String sql = "UPDATE categoria SET nombre = ?, activa = ? WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -97,5 +79,40 @@ public class CategoriaDAO {
             ps.setInt(1, id);
             ps.executeUpdate();
         }
+    }
+
+    public boolean existeNombre(String nombre, Integer idExcluir) throws SQLException {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM categoria WHERE LOWER(nombre) = LOWER(?)");
+        if (idExcluir != null) {
+            sql.append(" AND id <> ?");
+        }
+
+        try (Connection cn = DatabaseConnection.getConnection();
+             PreparedStatement ps = cn.prepareStatement(sql.toString())) {
+            ps.setString(1, nombre.trim());
+            if (idExcluir != null) {
+                ps.setInt(2, idExcluir);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean tieneProductos(int categoriaId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM producto WHERE categoria_id = ?";
+        try (Connection cn = DatabaseConnection.getConnection();
+             PreparedStatement ps = cn.prepareStatement(sql)) {
+            ps.setInt(1, categoriaId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        }
+        return false;
     }
 }
